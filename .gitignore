@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Environment and secrets (never commit real keys)
+.env
+.env.local
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (keep folders, ignore large/raw downloads)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Frontend (when Vite/React is added later)
+node_modules/
+dist/
