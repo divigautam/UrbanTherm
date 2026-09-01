@@ -22,6 +22,10 @@ data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+# Keep the small Ghaziabad vector outputs from Step 2
+!data/raw/ghaziabad_boundary.geojson
+!data/processed/ghaziabad_grid_500m.geojson
+!data/processed/ghaziabad_grid_500m.csv
 
 # OS and editor
 .DS_Store
