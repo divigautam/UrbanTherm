@@ -26,6 +26,12 @@ data/processed/*
 !data/raw/ghaziabad_boundary.geojson
 !data/processed/ghaziabad_grid_500m.geojson
 !data/processed/ghaziabad_grid_500m.csv
+!data/processed/ghaziabad_weather.csv
+!data/processed/ghaziabad_weather_features.csv
+!data/processed/ghaziabad_heat_risk.csv
+!data/processed/ghaziabad_satellite_features.csv
+!data/processed/ghaziabad_final_features.csv
+!data/processed/ghaziabad_real_heat_risk.csv
 
 # OS and editor
 .DS_Store

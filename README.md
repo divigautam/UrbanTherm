@@ -1,6 +1,6 @@
 # UrbanTherm
 
-UrbanTherm is an AI-powered hyperlocal urban heat intelligence and risk forecasting system. This repository currently contains only the **initial project structure** and a minimal FastAPI backend. Data collection, ML models, and the full frontend are not built yet.
+UrbanTherm is an AI-powered hyperlocal urban heat intelligence and risk forecasting system. This repository currently has the project skeleton, a minimal FastAPI backend, the Ghaziabad 500 m grid, and an Open-Meteo historical weather fetch script. ML models and the full frontend are not built yet.
 
 ## Folder purpose
 
@@ -69,9 +69,18 @@ Then open [http://127.0.0.1:8000](http://127.0.0.1:8000). You should see:
 
 Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
+## Fetch historical weather (Open-Meteo)
+
+From the project root (needs internet; no API key):
+
+```bash
+python scripts/fetch_weather.py
+```
+
+This reads the existing `data/processed/ghaziabad_grid_500m.csv` centroid mean, requests hourly `temperature_2m`, `relative_humidity_2m`, and `wind_speed_10m` from the Open-Meteo Historical Weather API, and writes `data/processed/ghaziabad_weather.csv`. Optional flags: `--start-date`, `--end-date`, `--output`.
+
 ## What is not included yet
 
-- No datasets (real or fake)
 - No ML model or predictions
 - No complete frontend
 - No API keys or passwords
