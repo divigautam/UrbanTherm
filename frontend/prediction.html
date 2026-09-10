@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanTherm | AI Prediction</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+    --bg:#070c16;
+    --panel:#0e1726;
+    --panel2:#111d2f;
+    --border:#223049;
+    --muted:#8ea0b9;
+    --text:#f8fafc;
+    --orange:#ff6b35;
+    --red:#ef4444;
+    --amber:#f59e0b;
+    --green:#22c55e;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+    font-family:Arial,sans-serif;
+    background:
+        radial-gradient(circle at 15% 20%,rgba(255,107,53,.09),transparent 28%),
+        radial-gradient(circle at 85% 60%,rgba(52,120,255,.07),transparent 30%),
+        var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    overflow-x:hidden;
+    animation:pageIn .8s ease both;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:.15;
+    background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:70px 70px;
+    z-index:-1;
+}
+
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+header{
+    height:70px;
+    padding:0 5%;
+    border-bottom:1px solid #202b3f;
+    display:flex;
+    align-items:center;
+    background:rgba(11,18,32,.86);
+    backdrop-filter:blur(18px);
+    position:sticky;
+    top:0;
+    z-index:50;
+}
+
+.logo{font-size:25px;font-weight:700;white-space:nowrap}
+.logo span{color:var(--orange)}
+
+nav{
+    display:flex;
+    gap:22px;
+    margin-left:auto;
+    align-items:center;
+}
+
+nav a{
+    color:#9aa7bb;
+    text-decoration:none;
+    font-size:13px;
+    white-space:nowrap;
+    position:relative;
+    transition:.3s ease;
+}
+
+nav a::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-7px;
+    width:100%;
+    height:2px;
+    background:var(--orange);
+    transform:scaleX(0);
+    transform-origin:right;
+    transition:.3s ease;
+}
+
+nav a:hover,nav a.active{color:#fff}
+nav a:hover::after,nav a.active::after{transform:scaleX(1);transform-origin:left}
+
+.status{
+    margin-left:25px;
+    font-size:13px;
+    color:var(--green);
+    padding:7px 12px;
+    border:1px solid #1d5437;
+    border-radius:20px;
+    background:#0d2118;
+    animation:pulse 2.8s infinite;
+}
+
+@keyframes pulse{
+    0%,100%{box-shadow:0 0 0 rgba(34,197,94,0)}
+    50%{box-shadow:0 0 22px rgba(34,197,94,.18)}
+}
+
+.container{width:90%;max-width:1200px;margin:auto}
+
+.hero{
+    padding:72px 0 35px;
+    position:relative;
+    animation:heroIn 1s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes heroIn{
+    from{opacity:0;transform:translateY(45px)}
+    to{opacity:1;transform:none}
+}
+
+.hero::before{
+    content:"";
+    position:absolute;
+    width:420px;
+    height:420px;
+    right:-180px;
+    top:-140px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(255,107,53,.14),transparent 68%);
+    filter:blur(12px);
+    animation:orb 6s ease-in-out infinite;
+    pointer-events:none;
+}
+
+@keyframes orb{
+    0%,100%{transform:scale(1);opacity:.6}
+    50%{transform:scale(1.2);opacity:1}
+}
+
+.label{
+    display:inline-block;
+    padding:8px 14px;
+    border:1px solid #39455d;
+    border-radius:20px;
+    color:#b8c4d5;
+    font-size:12px;
+    letter-spacing:.5px;
+    margin-bottom:18px;
+}
+
+h1{
+    font-size:clamp(42px,6vw,72px);
+    line-height:1;
+    letter-spacing:-3px;
+    margin-bottom:18px;
+}
+
+h1 span{
+    color:var(--orange);
+    text-shadow:0 0 30px rgba(255,107,53,.15);
+}
+
+.subtitle{
+    max-width:760px;
+    color:#91a3bd;
+    line-height:1.8;
+}
+
+.ai-layout{
+    display:grid;
+    grid-template-columns:420px 1fr;
+    gap:22px;
+    margin-top:28px;
+}
+
+.panel{
+    background:linear-gradient(145deg,rgba(16,24,39,.96),rgba(10,17,29,.96));
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:26px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 20px 70px rgba(0,0,0,.2);
+}
+
+.panel::before{
+    content:"";
+    position:absolute;
+    width:300px;
+    height:300px;
+    right:-150px;
+    top:-150px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(255,107,53,.12),transparent 68%);
+    animation:orb 5s ease-in-out infinite;
+    pointer-events:none;
+}
+
+.panel-title{
+    position:relative;
+    z-index:2;
+    font-size:20px;
+    margin-bottom:7px;
+}
+
+.panel-subtitle{
+    position:relative;
+    z-index:2;
+    color:#718097;
+    font-size:12px;
+    margin-bottom:25px;
+}
+
+label{
+    display:block;
+    color:#aeb9ca;
+    font-size:12px;
+    margin-bottom:9px;
+    letter-spacing:.5px;
+}
+
+input{
+    width:100%;
+    background:#0b1220;
+    border:1px solid #2b374d;
+    color:white;
+    border-radius:9px;
+    padding:14px;
+    outline:none;
+    font-size:14px;
+    transition:.3s;
+}
+
+input:focus{
+    border-color:var(--orange);
+    box-shadow:0 0 22px rgba(255,107,53,.1);
+}
+
+.predict-btn{
+    width:100%;
+    margin-top:16px;
+    padding:14px;
+    border:0;
+    border-radius:9px;
+    background:var(--orange);
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+    font-size:14px;
+    transition:.3s cubic-bezier(.16,1,.3,1);
+}
+
+.predict-btn:hover{
+    transform:translateY(-3px) scale(1.01);
+    box-shadow:0 14px 35px rgba(255,107,53,.25);
+}
+
+.predict-btn:active{transform:scale(.98)}
+
+.example{
+    margin-top:15px;
+    color:#68778f;
+    font-size:11px;
+}
+
+.result-panel{
+    min-height:390px;
+}
+
+.scan{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#718097;
+    font-size:12px;
+    margin-bottom:22px;
+}
+
+.dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#334155;
+}
+
+.dot.active{
+    background:var(--orange);
+    box-shadow:0 0 16px rgba(255,107,53,.8);
+    animation:dotPulse 1s infinite;
+}
+
+@keyframes dotPulse{
+    50%{transform:scale(1.5);opacity:.6}
+}
+
+.idle{
+    min-height:280px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    color:#64748b;
+}
+
+.radar{
+    width:120px;
+    height:120px;
+    border:1px solid rgba(255,107,53,.3);
+    border-radius:50%;
+    position:relative;
+    margin-bottom:22px;
+    background:
+        radial-gradient(circle,rgba(255,107,53,.14),transparent 58%);
+    box-shadow:0 0 35px rgba(255,107,53,.08);
+}
+
+.radar::before,
+.radar::after{
+    content:"";
+    position:absolute;
+    inset:15px;
+    border:1px solid rgba(255,107,53,.22);
+    border-radius:50%;
+}
+
+.radar::after{
+    inset:30px;
+}
+
+.radar-line{
+    position:absolute;
+    width:50%;
+    height:1px;
+    background:var(--orange);
+    left:50%;
+    top:50%;
+    transform-origin:left;
+    animation:radarSpin 2.2s linear infinite;
+    box-shadow:0 0 12px var(--orange);
+}
+
+@keyframes radarSpin{to{transform:rotate(360deg)}}
+
+.result{
+    display:none;
+    position:relative;
+    z-index:2;
+}
+
+.result.show{
+    display:block;
+    animation:resultIn .8s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes resultIn{
+    from{opacity:0;transform:translateY(35px) scale(.96)}
+    to{opacity:1;transform:none}
+}
+
+.result-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:24px;
+}
+
+.grid-name{
+    font-size:24px;
+    font-weight:700;
+}
+
+.grid-name small{
+    display:block;
+    color:#718097;
+    font-size:11px;
+    font-weight:normal;
+    margin-top:5px;
+}
+
+.risk-badge{
+    padding:9px 15px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:700;
+    border:1px solid currentColor;
+    animation:badgePop .6s ease both;
+}
+
+@keyframes badgePop{
+    from{transform:scale(.5);opacity:0}
+    to{transform:scale(1);opacity:1}
+}
+
+.risk-high{color:var(--red);background:rgba(239,68,68,.09)}
+.risk-medium{color:var(--amber);background:rgba(245,158,11,.09)}
+.risk-low{color:var(--green);background:rgba(34,197,94,.09)}
+
+.score{
+    padding:20px;
+    border-radius:14px;
+    background:#0b1220;
+    border:1px solid #243149;
+    margin-bottom:15px;
+    overflow:hidden;
+    position:relative;
+}
+
+.score-label{
+    color:#7f8ca2;
+    font-size:11px;
+    letter-spacing:.6px;
+}
+
+.score-value{
+    font-size:48px;
+    margin-top:3px;
+    font-weight:700;
+}
+
+.score-bar{
+    height:6px;
+    background:#1b2638;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:12px;
+}
+
+.score-fill{
+    height:100%;
+    width:0;
+    background:var(--orange);
+    border-radius:10px;
+    transition:width 1.1s cubic-bezier(.16,1,.3,1);
+    box-shadow:0 0 16px rgba(255,107,53,.5);
+}
+
+.metrics{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+.metric{
+    background:#111d2f;
+    border:1px solid #253148;
+    border-radius:11px;
+    padding:17px;
+    animation:metricIn .6s ease both;
+}
+
+.metric:nth-child(2){animation-delay:.1s}
+.metric:nth-child(3){animation-delay:.2s}
+.metric:nth-child(4){animation-delay:.3s}
+.metric:nth-child(5){animation-delay:.4s}
+.metric:nth-child(6){animation-delay:.5s}
+
+@keyframes metricIn{
+    from{opacity:0;transform:translateY(15px)}
+    to{opacity:1;transform:none}
+}
+
+.metric h3{
+    color:#718097;
+    font-size:10px;
+    letter-spacing:.6px;
+    margin-bottom:7px;
+}
+
+.metric div{
+    font-size:20px;
+    font-weight:600;
+}
+
+.explanation{
+    margin-top:22px;
+    padding:18px;
+    border-left:2px solid var(--orange);
+    background:rgba(255,107,53,.045);
+    color:#8fa0b7;
+    font-size:13px;
+    line-height:1.7;
+}
+
+footer{
+    margin-top:70px;
+    padding:28px;
+    text-align:center;
+    color:#657288;
+    border-top:1px solid #202b3f;
+    font-size:12px;
+}
+
+@media(max-width:900px){
+    nav{gap:10px}
+    .status{display:none}
+    .ai-layout{grid-template-columns:1fr}
+}
+
+@media(max-width:650px){
+    header{padding:0 20px}
+    nav{display:none}
+    .container{width:94%}
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .result-head{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Urban<span>Therm</span></div>
+
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="heatmap.html">Heat Map</a>
+        <a href="prediction.html" class="active">AI Prediction</a>
+        <a href="grid.html">Grid Intelligence</a>
+        <a href="about.html">About</a>
+        <a href="login.html">Logout</a>
+    </nav>
+
+    <div class="status">● ML Engine</div>
+</header>
+
+<main class="container">
+
+<section class="hero">
+    <div class="label">URBANTHERM · AI INTELLIGENCE ENGINE</div>
+
+    <h1>Predict Heat <span>Risk.</span></h1>
+
+    <p class="subtitle">
+        Enter a Ghaziabad grid ID and let the UrbanTherm machine-learning
+        engine analyze its environmental characteristics and return a
+        heat-risk classification.
+    </p>
+</section>
+
+<section class="ai-layout">
+
+    <div class="panel">
+        <h2 class="panel-title">AI Risk Analysis</h2>
+
+        <p class="panel-subtitle">
+            Query the trained Random Forest model.
+        </p>
+
+        <label for="gridId">GRID ID</label>
+
+        <input
+            id="gridId"
+            type="text"
+            placeholder="e.g. G1086"
+            autocomplete="off"
+        >
+
+        <button class="predict-btn" onclick="predictGrid()">
+            Run AI Analysis →
+        </button>
+
+        <div class="example">
+            Try: G1086 · G2000 · G3000
+        </div>
+    </div>
+
+
+    <div class="panel result-panel">
+
+        <div class="scan">
+            <span id="statusDot" class="dot"></span>
+            <span id="scanText">AI engine ready · waiting for grid</span>
+        </div>
+
+        <div id="idle" class="idle">
+            <div class="radar">
+                <div class="radar-line"></div>
+            </div>
+
+            <div>
+                Enter a grid ID to begin analysis
+            </div>
+        </div>
+
+
+        <div id="result" class="result">
+
+            <div class="result-head">
+
+                <div class="grid-name">
+                    <span id="resultGrid">G1086</span>
+
+                    <small>
+                        Ghaziabad spatial intelligence
+                    </small>
+                </div>
+
+                <div id="riskBadge" class="risk-badge risk-low">
+                    LOW
+                </div>
+
+            </div>
+
+
+            <div class="score">
+
+                <div class="score-label">
+                    OBSERVED HEAT RISK SCORE
+                </div>
+
+                <div class="score-value">
+                    <span id="score">0</span>
+                </div>
+
+                <div class="score-bar">
+                    <div id="scoreFill" class="score-fill"></div>
+                </div>
+
+            </div>
+
+
+            <div class="metrics">
+
+                <div class="metric">
+                    <h3>ML PREDICTION</h3>
+                    <div id="prediction">—</div>
+                </div>
+
+                <div class="metric">
+                    <h3>OBSERVED RISK</h3>
+                    <div id="observed">—</div>
+                </div>
+
+                <div class="metric">
+                    <h3>LST</h3>
+                    <div id="lst">—</div>
+                </div>
+
+                <div class="metric">
+                    <h3>NDVI</h3>
+                    <div id="ndvi">—</div>
+                </div>
+
+                <div class="metric">
+                    <h3>NDBI</h3>
+                    <div id="ndbi">—</div>
+                </div>
+
+                <div class="metric">
+                    <h3>AVG TEMPERATURE</h3>
+                    <div id="temperature">—</div>
+                </div>
+
+            </div>
+
+
+            <div class="explanation" id="explanation">
+                AI analysis will appear here.
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+    © 2026 UrbanTherm · Satellite · AI · Urban Intelligence
+</footer>
+
+
+<script>
+const API_BASE = "http://127.0.0.1:5000";
+
+async function predictGrid(){
+
+    const input = document.getElementById("gridId");
+    const gridId = input.value.trim();
+
+    if(!gridId){
+        input.focus();
+        document.getElementById("scanText").textContent =
+            "Enter a grid ID first";
+        return;
+    }
+
+    const idle = document.getElementById("idle");
+    const result = document.getElementById("result");
+    const dot = document.getElementById("statusDot");
+    const scanText = document.getElementById("scanText");
+    const button = document.querySelector(".predict-btn");
+
+    result.classList.remove("show");
+    idle.style.display = "flex";
+
+    dot.classList.add("active");
+    scanText.textContent = "Scanning grid · contacting ML engine...";
+    button.disabled = true;
+    button.textContent = "Analyzing...";
+
+    try{
+
+        const response = await fetch(
+            `${API_BASE}/api/predict-grid/${encodeURIComponent(gridId)}`
+        );
+
+        const data = await response.json();
+
+        if(!response.ok){
+            throw new Error(data.error || "Grid not found");
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 650));
+
+        idle.style.display = "none";
+        result.classList.add("show");
+
+        document.getElementById("resultGrid").textContent =
+            data.grid_id;
+
+        document.getElementById("prediction").textContent =
+            data.ml_prediction;
+
+        document.getElementById("observed").textContent =
+            data.observed_risk;
+
+        document.getElementById("lst").textContent =
+            `${Number(data.lst_celsius).toFixed(2)} °C`;
+
+        document.getElementById("ndvi").textContent =
+            Number(data.ndvi).toFixed(3);
+
+        document.getElementById("ndbi").textContent =
+            Number(data.ndbi).toFixed(3);
+
+        document.getElementById("temperature").textContent =
+            `${Number(data.avg_temperature).toFixed(2)} °C`;
+
+        const score = Number(data.heat_risk_score);
+
+        document.getElementById("score").textContent =
+            score.toFixed(1);
+
+        setTimeout(() => {
+            document.getElementById("scoreFill").style.width =
+                `${Math.min(Math.max(score,0),100)}%`;
+        }, 100);
+
+        const badge = document.getElementById("riskBadge");
+
+        badge.textContent =
+            String(data.ml_prediction).toUpperCase();
+
+        badge.className = "risk-badge";
+
+        const risk = String(data.ml_prediction).toLowerCase();
+
+        if(risk === "high"){
+            badge.classList.add("risk-high");
+        }else if(risk === "medium"){
+            badge.classList.add("risk-medium");
+        }else{
+            badge.classList.add("risk-low");
+        }
+
+        document.getElementById("explanation").textContent =
+            `Grid ${data.grid_id} returned an ML prediction of ${data.ml_prediction}. ` +
+            `The observed satellite LST is ${Number(data.lst_celsius).toFixed(2)} °C, ` +
+            `with NDVI ${Number(data.ndvi).toFixed(3)} and NDBI ${Number(data.ndbi).toFixed(3)}.`;
+
+        dot.classList.remove("active");
+
+        scanText.textContent =
+            "Analysis complete · ML engine connected";
+
+    }catch(error){
+
+        idle.style.display = "flex";
+        result.classList.remove("show");
+
+        dot.classList.remove("active");
+
+        scanText.textContent =
+            `Analysis failed · ${error.message}`;
+
+    }finally{
+
+        button.disabled = false;
+        button.textContent = "Run AI Analysis →";
+    }
+}
+
+document.getElementById("gridId").addEventListener("keydown", function(e){
+
+    if(e.key === "Enter"){
+        predictGrid();
+    }
+
+});
+</script>
+
+</body>
+</html>

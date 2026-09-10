@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>UrbanTherm | Heat Map</title>
+
+    <style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+    --bg:#070c16;
+    --panel:#0e1726;
+    --panel2:#111d2f;
+    --border:#223049;
+    --muted:#8ea0b9;
+    --text:#f8fafc;
+    --orange:#ff6b35;
+    --red:#ef4444;
+    --amber:#f59e0b;
+    --green:#22c55e;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+    font-family:Arial,sans-serif;
+    background:
+        radial-gradient(circle at 15% 18%,rgba(255,107,53,.08),transparent 28%),
+        radial-gradient(circle at 85% 42%,rgba(38,132,255,.06),transparent 30%),
+        var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    overflow-x:hidden;
+    animation:pageIn .8s ease both;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:.16;
+    background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:70px 70px;
+    mask-image:linear-gradient(to bottom,black,transparent 85%);
+    z-index:-1;
+}
+
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+header{
+    height:70px;
+    padding:0 5%;
+    border-bottom:1px solid #202b3f;
+    display:flex;
+    align-items:center;
+    background:rgba(11,18,32,.86);
+    backdrop-filter:blur(18px);
+    position:sticky;
+    top:0;
+    z-index:50;
+}
+
+.logo{font-size:25px;font-weight:700;white-space:nowrap}
+.logo span{color:var(--orange)}
+
+nav{
+    display:flex;
+    gap:22px;
+    margin-left:auto;
+    align-items:center;
+}
+
+nav a{
+    color:#9aa7bb;
+    text-decoration:none;
+    font-size:13px;
+    white-space:nowrap;
+    position:relative;
+    transition:.3s ease;
+}
+
+nav a::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-7px;
+    width:100%;
+    height:2px;
+    background:var(--orange);
+    transform:scaleX(0);
+    transform-origin:right;
+    transition:.3s ease;
+}
+
+nav a:hover,nav a.active{color:#fff}
+nav a:hover::after,nav a.active::after{transform:scaleX(1);transform-origin:left}
+
+.status{
+    margin-left:25px;
+    font-size:13px;
+    color:var(--green);
+    padding:7px 12px;
+    border:1px solid #1d5437;
+    border-radius:20px;
+    background:#0d2118;
+    animation:statusPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes statusPulse{
+    0%,100%{box-shadow:0 0 0 rgba(34,197,94,0)}
+    50%{box-shadow:0 0 22px rgba(34,197,94,.18)}
+}
+
+.container{width:90%;max-width:1450px;margin:auto}
+
+.hero{
+    padding:72px 0 38px;
+    position:relative;
+    animation:heroIn 1s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes heroIn{
+    from{opacity:0;transform:translateY(45px)}
+    to{opacity:1;transform:none}
+}
+
+.hero::before{
+    content:"";
+    position:absolute;
+    width:420px;
+    height:420px;
+    left:-180px;
+    top:-100px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(255,107,53,.13),transparent 68%);
+    filter:blur(12px);
+    animation:orbFloat 6s ease-in-out infinite;
+    pointer-events:none;
+}
+
+@keyframes orbFloat{
+    0%,100%{transform:translate(0,0) scale(1)}
+    50%{transform:translate(70px,25px) scale(1.15)}
+}
+
+.label{
+    display:inline-block;
+    padding:8px 14px;
+    border:1px solid #39455d;
+    border-radius:20px;
+    color:#b8c4d5;
+    font-size:12px;
+    margin-bottom:18px;
+    letter-spacing:.5px;
+    animation:labelIn .9s .15s both;
+}
+
+@keyframes labelIn{
+    from{opacity:0;transform:translateX(-25px)}
+    to{opacity:1;transform:none}
+}
+
+h1{
+    font-size:clamp(42px,6vw,76px);
+    line-height:1;
+    margin-bottom:20px;
+    letter-spacing:-3px;
+}
+
+h1 span{
+    color:var(--orange);
+    display:inline-block;
+    animation:heatText 2.5s ease-in-out infinite;
+}
+
+@keyframes heatText{
+    0%,100%{text-shadow:0 0 0 rgba(255,107,53,0)}
+    50%{text-shadow:0 0 30px rgba(255,107,53,.28)}
+}
+
+.subtitle{
+    color:#91a3bd;
+    max-width:850px;
+    line-height:1.8;
+    font-size:16px;
+}
+
+.map-panel{
+    margin-top:25px;
+    background:linear-gradient(145deg,rgba(16,24,39,.96),rgba(11,18,31,.96));
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+    animation:panelIn 1s .18s cubic-bezier(.16,1,.3,1) both;
+    box-shadow:0 20px 70px rgba(0,0,0,.22);
+}
+
+@keyframes panelIn{
+    from{opacity:0;transform:translateY(65px) scale(.97)}
+    to{opacity:1;transform:none}
+}
+
+.map-panel::before{
+    content:"";
+    position:absolute;
+    inset:-30%;
+    background:conic-gradient(from 90deg,transparent,rgba(255,107,53,.09),transparent 28%);
+    animation:rotateGlow 9s linear infinite;
+    pointer-events:none;
+}
+
+@keyframes rotateGlow{to{transform:rotate(360deg)}}
+
+.map-panel::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    height:2px;
+    background:linear-gradient(90deg,transparent,var(--orange),transparent);
+    box-shadow:0 0 20px rgba(255,107,53,.8);
+    animation:scan 4s ease-in-out infinite;
+    pointer-events:none;
+    z-index:10;
+}
+
+@keyframes scan{
+    0%,100%{transform:translateY(0);opacity:0}
+    12%,88%{opacity:.8}
+    50%{transform:translateY:650px;opacity:.55}
+}
+
+.map-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+    position:relative;
+    z-index:12;
+}
+
+.map-header h2{font-size:20px}
+.map-header p{color:#718097;font-size:12px;margin-top:5px}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+
+.filter{
+    background:#182235;
+    color:#aeb9ca;
+    border:1px solid #2b374d;
+    padding:9px 15px;
+    border-radius:8px;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    transition:.3s cubic-bezier(.16,1,.3,1);
+}
+
+.filter::before{
+    content:"";
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:35%;
+    left:-60%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+    transform:skewX(-20deg);
+    transition:.5s;
+}
+
+.filter:hover::before{left:120%}
+.filter:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(255,107,53,.13)}
+.filter.active{
+    background:var(--orange);
+    color:white;
+    border-color:var(--orange);
+    box-shadow:0 0 25px rgba(255,107,53,.22);
+}
+
+iframe{
+    width:100%;
+    height:650px;
+    border:none;
+    border-radius:10px;
+    background:white;
+    position:relative;
+    z-index:3;
+    transition:filter .4s ease,transform .5s ease;
+}
+
+.map-panel:hover iframe{
+    transform:scale(1.002);
+    filter:saturate(1.06) contrast(1.02);
+}
+
+.info-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-top:28px;
+    perspective:1200px;
+}
+
+.info-card{
+    position:relative;
+    overflow:hidden;
+    min-height:175px;
+    background:linear-gradient(145deg,#101827,#0c1523);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:24px;
+    isolation:isolate;
+    transform-style:preserve-3d;
+    opacity:0;
+    animation:cardIn .9s cubic-bezier(.16,1,.3,1) forwards,cardFloat 5s ease-in-out 1.2s infinite;
+    transition:transform .45s cubic-bezier(.16,1,.3,1),border-color .35s,box-shadow .35s;
+}
+
+.info-card:nth-child(1){animation-delay:.25s,.25s}
+.info-card:nth-child(2){animation-delay:.45s,.45s}
+.info-card:nth-child(3){animation-delay:.65s,.65s}
+
+@keyframes cardIn{
+    from{opacity:0;transform:translateY(70px) rotateX(12deg) scale(.92)}
+    to{opacity:1;transform:none}
+}
+
+@keyframes cardFloat{
+    0%,100%{margin-top:0}
+    50%{margin-top:-7px}
+}
+
+.info-card::before{
+    content:"";
+    position:absolute;
+    width:260px;
+    height:260px;
+    right:-100px;
+    top:-130px;
+    border-radius:50%;
+    filter:blur(10px);
+    animation:orbPulse 4s ease-in-out infinite;
+    z-index:-1;
+}
+
+.info-card:nth-child(1)::before{background:radial-gradient(circle,rgba(239,68,68,.3),transparent 68%)}
+.info-card:nth-child(2)::before{background:radial-gradient(circle,rgba(245,158,11,.28),transparent 68%)}
+.info-card:nth-child(3)::before{background:radial-gradient(circle,rgba(34,197,94,.26),transparent 68%)}
+
+@keyframes orbPulse{
+    0%,100%{transform:scale(.75);opacity:.5}
+    50%{transform:scale(1.3);opacity:1}
+}
+
+.info-card::after{
+    content:"";
+    position:absolute;
+    width:90px;
+    height:180%;
+    top:-35%;
+    left:-130px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+    transform:rotate(20deg);
+    animation:lightPass 4s ease-in-out infinite;
+    pointer-events:none;
+}
+
+@keyframes lightPass{
+    0%,20%{left:-130px}
+    55%,100%{left:125%}
+}
+
+.info-card:hover{
+    transform:translateY(-14px) rotateX(3deg) rotateY(-2deg) scale(1.025);
+}
+
+.info-card:nth-child(1):hover{
+    border-color:rgba(239,68,68,.7);
+    box-shadow:0 25px 60px rgba(0,0,0,.4),0 0 40px rgba(239,68,68,.18);
+}
+.info-card:nth-child(2):hover{
+    border-color:rgba(245,158,11,.7);
+    box-shadow:0 25px 60px rgba(0,0,0,.4),0 0 40px rgba(245,158,11,.17);
+}
+.info-card:nth-child(3):hover{
+    border-color:rgba(34,197,94,.7);
+    box-shadow:0 25px 60px rgba(0,0,0,.4),0 0 40px rgba(34,197,94,.16);
+}
+
+.info-card h3{
+    font-size:13px;
+    color:#8ea0b9;
+    margin-bottom:12px;
+    letter-spacing:.8px;
+    position:relative;
+    z-index:2;
+}
+
+.info-card p{
+    color:#a7b6ca;
+    font-size:14px;
+    line-height:1.7;
+    position:relative;
+    z-index:2;
+    transition:transform .35s ease;
+}
+
+.info-card:hover p{transform:translateX(5px)}
+.high{color:var(--red)}
+.medium{color:var(--amber)}
+.low{color:var(--green)}
+
+footer{
+    margin-top:75px;
+    padding:28px;
+    text-align:center;
+    color:#657288;
+    border-top:1px solid #202b3f;
+    font-size:12px;
+    background:rgba(8,13,24,.7);
+}
+
+@media(max-width:1000px){
+    nav{gap:11px}
+    .status{display:none}
+    .info-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:650px){
+    header{padding:0 20px}
+    nav{display:none}
+    .container{width:94%}
+    .hero{padding-top:50px}
+    h1{font-size:42px}
+    .map-header{align-items:flex-start;gap:15px;flex-direction:column}
+    iframe{height:500px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        Urban<span>Therm</span>
+    </div>
+
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="heatmap.html" class="active">Heat Map</a>
+        <a href="prediction.html">AI Prediction</a>
+        <a href="grid.html">Grid Intelligence</a>
+        <a href="about.html">About</a>
+        <a href="login.html">Logout</a>
+    </nav>
+
+    <div class="status">
+        ● Satellite Data
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <section class="hero">
+
+        <div class="label">
+            GHAZIABAD · 500m × 500m GRID
+        </div>
+
+        <h1>
+            Urban Heat <span>Map</span>
+        </h1>
+
+        <p class="subtitle">
+            Explore hyperlocal heat-risk patterns across Ghaziabad
+            using satellite-derived land surface temperature,
+            vegetation and built-environment indicators.
+        </p>
+
+    </section>
+
+
+    <section class="map-panel">
+
+        <div class="map-header">
+
+            <div>
+                <h2>Interactive Heat Risk Map</h2>
+                <p>Click any grid cell to inspect its heat characteristics.</p>
+            </div>
+
+            <div class="filters">
+
+                <button class="filter active" onclick="changeMap('all')">
+                    All
+                </button>
+
+                <button class="filter" onclick="changeMap('high')">
+                    High Risk
+                </button>
+
+                <button class="filter" onclick="changeMap('medium')">
+                    Medium Risk
+                </button>
+
+                <button class="filter" onclick="changeMap('low')">
+                    Low Risk
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <iframe
+            id="heatMap"
+            src="../docs/ghaziabad_heat_risk_map.html">
+        </iframe>
+
+    </section>
+
+
+    <section class="info-grid">
+
+        <div class="info-card">
+            <h3>HIGH RISK</h3>
+            <p class="high">
+                Areas with comparatively elevated surface temperature
+                and higher heat-risk classification.
+            </p>
+        </div>
+
+           <div class="info-card">
+            <h3>MEDIUM RISK</h3>
+            <p class="medium">
+                Areas showing moderate heat exposure based on the
+                observed satellite snapshot.
+            </p>
+        </div>
+
+        <div class="info-card">
+            <h3>LOW RISK</h3>
+            <p class="low">
+                Areas with comparatively lower observed surface
+                temperature.
+            </p>
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+    © 2026 UrbanTherm · Satellite · AI · Urban Intelligence
+</footer>
+
+
+<script>
+
+function changeMap(type) {
+
+    const map = document.getElementById("heatMap");
+
+    const buttons = document.querySelectorAll(".filter");
+
+    buttons.forEach(button => {
+        button.classList.remove("active");
+    });
+
+    const clickedButton = [...buttons].find(button =>
+        button.textContent.trim().toLowerCase().startsWith(type === "all" ? "all" : type)
+    );
+
+    if (clickedButton) {
+        clickedButton.classList.add("active");
+    }
+
+    if (type === "all") {
+        map.src = "../docs/ghaziabad_heat_risk_map.html";
+    }
+
+    if (type === "high") {
+        map.src = "../docs/ghaziabad_high_risk_map.html";
+    }
+
+    if (type === "medium") {
+        map.src = "../docs/ghaziabad_medium_risk_map.html";
+    }
+
+    if (type === "low") {
+        map.src = "../docs/ghaziabad_low_risk_map.html";
+    }
+
+}
+  const motionElements = document.querySelectorAll(".motion-reveal");
+
+const motionObserver = new IntersectionObserver(
+    (entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("show");
+            }
+        });
+    },
+    {
+        threshold: 0.15
+    }
+);
+
+motionElements.forEach((element) => {
+    motionObserver.observe(element);
+});
+
+
+</script>
+
+</body>
+</html>

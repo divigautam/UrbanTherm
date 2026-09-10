@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrbanTherm | Login</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #07110f;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 900px;
+            max-width: 92%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 1px solid #263d38;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #0c1916;
+        }
+
+        .left {
+            padding: 55px;
+            background: #10221e;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 70px;
+        }
+
+        .logo span {
+            color: #61d9a5;
+        }
+
+        .left h1 {
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+
+        .left p {
+            color: #9cafaa;
+            line-height: 1.7;
+        }
+
+        .stats {
+            display: flex;
+            gap: 35px;
+            margin-top: 45px;
+        }
+
+        .stat h2 {
+            color: #61d9a5;
+        }
+
+        .stat p {
+            font-size: 13px;
+        }
+
+        .right {
+            padding: 55px;
+            background: #091411;
+        }
+
+        .right h2 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #899b94;
+            margin-bottom: 35px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #b7c6c0;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 22px;
+            border-radius: 9px;
+            border: 1px solid #29423b;
+            background: #0d1d19;
+            color: white;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #61d9a5;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 9px;
+            background: #61d9a5;
+            color: #06100d;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .message {
+            margin-top: 18px;
+            text-align: center;
+            color: #ff7676;
+            font-size: 14px;
+        }
+
+        .demo {
+            margin-top: 25px;
+            padding: 12px;
+            background: #101f1b;
+            border-radius: 8px;
+            color: #84968f;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .left {
+                display: none;
+            }
+
+            .right {
+                padding: 35px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="left">
+
+        <div class="logo">
+            Urban<span>Therm</span>
+        </div>
+
+        <h1>Understand<br>Urban Heat.</h1>
+
+        <p>
+            AI-powered hyperlocal heat intelligence
+            for understanding and managing urban
+            heat risk.
+        </p>
+
+        <div class="stats">
+
+            <div class="stat">
+                <h2>3,881</h2>
+                <p>Grid Cells</p>
+            </div>
+
+            <div class="stat">
+                <h2>AI</h2>
+                <p>Risk Analysis</p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="right">
+
+        <h2>Welcome back</h2>
+
+        <p class="subtitle">
+            Sign in to access UrbanTherm intelligence.
+        </p>
+
+        <form id="loginForm">
+
+            <label>Email</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter your email"
+                required
+            >
+
+            <label>Password</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter your password"
+                required
+            >
+
+            <button type="submit">
+                Sign In →
+            </button>
+
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div class="demo">
+            Demo login: admin@urbanthem.com / admin123
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    if (email === "admin@urbanthem.com" && password === "admin123") {
+
+        localStorage.setItem("urbanThermLoggedIn", "true");
+
+        window.location.href = "dashboard.html";
+
+    } else {
+
+        document.getElementById("message").textContent =
+            "Invalid email or password.";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

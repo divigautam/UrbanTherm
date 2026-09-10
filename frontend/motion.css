@@ -1,0 +1,301 @@
+/* =====================================================
+   URBANTHERM — GLOBAL MOTION SYSTEM
+   ===================================================== */
+
+/* ---------- PAGE ENTRANCE ---------- */
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+body {
+    animation: pageEnter .7s ease-out both;
+}
+
+
+/* ---------- SOFT REVEAL ---------- */
+
+@keyframes revealUp {
+    from {
+        opacity: 0;
+        transform: translateY(45px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.motion-reveal {
+    opacity: 0;
+}
+
+.motion-reveal.show {
+    animation: revealUp .8s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+
+/* ---------- GLOW PULSE ---------- */
+
+@keyframes heatPulse {
+
+    0%,
+    100% {
+        opacity: .45;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: .9;
+        transform: scale(1.08);
+    }
+}
+
+.heat-pulse {
+    animation: heatPulse 3s ease-in-out infinite;
+}
+
+
+/* ---------- FLOAT ---------- */
+
+@keyframes floating {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-9px);
+    }
+}
+
+.float {
+    animation: floating 4s ease-in-out infinite;
+}
+
+
+/* ---------- LIGHT SWEEP ---------- */
+
+@keyframes lightSweep {
+
+    0% {
+        transform: translateX(-120%) skewX(-20deg);
+    }
+
+    45% {
+        transform: translateX(220%) skewX(-20deg);
+    }
+
+    100% {
+        transform: translateX(220%) skewX(-20deg);
+    }
+}
+
+.motion-sweep {
+    position: relative;
+    overflow: hidden;
+}
+
+.motion-sweep::after {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 35%;
+    height: 100%;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.07),
+        transparent
+    );
+
+    pointer-events: none;
+
+    animation: lightSweep 4s ease-in-out infinite;
+}
+
+
+/* ---------- SCANNER ---------- */
+
+@keyframes scanner {
+
+    0% {
+        transform: translateY(-120%);
+        opacity: 0;
+    }
+
+    15% {
+        opacity: .7;
+    }
+
+    85% {
+        opacity: .7;
+    }
+
+    100% {
+        transform: translateY(120%);
+        opacity: 0;
+    }
+}
+
+.motion-scan {
+    position: relative;
+    overflow: hidden;
+}
+
+.motion-scan::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    top: 0;
+
+    height: 2px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,107,53,.9),
+        transparent
+    );
+
+    box-shadow:
+        0 0 15px rgba(255,107,53,.6);
+
+    animation: scanner 4s ease-in-out infinite;
+
+    pointer-events: none;
+}
+
+
+/* ---------- PREMIUM HOVER ---------- */
+
+.motion-hover {
+    transition:
+        transform .35s cubic-bezier(.22,1,.36,1),
+        border-color .35s ease,
+        box-shadow .35s ease;
+}
+
+.motion-hover:hover {
+    transform: translateY(-8px) scale(1.015);
+
+    border-color: rgba(255,107,53,.55);
+
+    box-shadow:
+        0 20px 50px rgba(0,0,0,.3),
+        0 0 30px rgba(255,107,53,.08);
+}
+
+
+/* ---------- GLOW BORDER ---------- */
+
+@keyframes borderGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 rgba(255,107,53,0);
+    }
+
+    50% {
+        box-shadow:
+            0 0 25px rgba(255,107,53,.16);
+    }
+}
+
+.motion-glow {
+    animation: borderGlow 3s ease-in-out infinite;
+}
+
+
+/* ---------- BUTTON ---------- */
+
+.motion-button {
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        filter .25s ease;
+}
+
+.motion-button:hover {
+    transform: translateY(-3px) scale(1.02);
+
+    box-shadow:
+        0 10px 30px rgba(255,107,53,.22);
+}
+
+.motion-button:active {
+    transform: scale(.97);
+}
+
+
+/* ---------- STAGGER HELPERS ---------- */
+
+.delay-1 {
+    animation-delay: .15s !important;
+}
+
+.delay-2 {
+    animation-delay: .3s !important;
+}
+
+.delay-3 {
+    animation-delay: .45s !important;
+}
+
+.delay-4 {
+    animation-delay: .6s !important;
+}
+
+
+/* ---------- DATA NUMBER ---------- */
+
+@keyframes numberPop {
+
+    from {
+        opacity: 0;
+        transform: scale(.75);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.number-pop {
+    animation: numberPop .7s cubic-bezier(.22,1,.36,1) both;
+}
+
+
+/* ---------- REDUCED MOTION ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+
+}

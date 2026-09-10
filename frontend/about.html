@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanTherm | About</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --bg:#070c16;--panel:#0e1726;--panel2:#111d2f;--border:#223049;
+ --muted:#8ea0b9;--orange:#ff6b35;--cyan:#38bdf8;--green:#22c55e
+}
+html{scroll-behavior:smooth}
+body{
+ font-family:Arial,sans-serif;color:#f8fafc;background:
+ radial-gradient(circle at 12% 15%,rgba(255,107,53,.10),transparent 28%),
+ radial-gradient(circle at 88% 45%,rgba(56,189,248,.07),transparent 30%),var(--bg);
+ overflow-x:hidden;animation:pageIn .8s ease both
+}
+body:before{
+ content:"";position:fixed;inset:0;z-index:-2;opacity:.15;pointer-events:none;
+ background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+ background-size:70px 70px
+}
+body:after{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(circle at 50% 25%,transparent 0,rgba(7,12,22,.22) 55%,rgba(7,12,22,.7) 100%)
+}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+header{
+ height:70px;padding:0 5%;display:flex;align-items:center;position:sticky;top:0;z-index:50;
+ background:rgba(9,16,29,.84);backdrop-filter:blur(18px);border-bottom:1px solid #202b3f
+}
+.logo{font-size:25px;font-weight:700;white-space:nowrap}.logo span{color:var(--orange)}
+nav{display:flex;gap:22px;margin-left:auto;align-items:center}
+nav a{color:#9aa7bb;text-decoration:none;font-size:13px;position:relative;white-space:nowrap;transition:.3s}
+nav a:hover,nav a.active{color:#fff}
+nav a:after{content:"";position:absolute;left:0;bottom:-7px;width:100%;height:2px;background:var(--orange);transform:scaleX(0);transform-origin:right;transition:.3s}
+nav a:hover:after,nav a.active:after{transform:scaleX(1);transform-origin:left}
+.status{margin-left:25px;color:var(--green);font-size:13px;padding:7px 12px;border:1px solid #1d5437;border-radius:20px;background:#0d2118}
+
+.container{width:90%;max-width:1180px;margin:auto}
+.hero{
+ min-height:620px;display:flex;align-items:center;position:relative;overflow:hidden
+}
+.hero-copy{max-width:780px;position:relative;z-index:2;animation:heroIn 1s cubic-bezier(.16,1,.3,1) both}
+@keyframes heroIn{from{opacity:0;transform:translateY(55px)}to{opacity:1;transform:none}}
+.kicker{
+ display:inline-block;padding:8px 14px;border:1px solid #3b475e;border-radius:20px;
+ color:#b9c5d6;font-size:11px;letter-spacing:1px;margin-bottom:22px
+}
+h1{font-size:clamp(48px,7vw,88px);line-height:.94;letter-spacing:-4px}
+h1 span{color:var(--orange);text-shadow:0 0 35px rgba(255,107,53,.18)}
+.hero p{margin-top:24px;color:#91a3bd;line-height:1.9;max-width:700px;font-size:15px}
+.hero-orbit{
+ position:absolute;right:-70px;top:95px;width:470px;height:470px;border:1px solid #243149;
+ border-radius:50%;opacity:.7;animation:rotate 18s linear infinite
+}
+.hero-orbit:before,.hero-orbit:after{
+ content:"";position:absolute;border:1px solid #26354e;border-radius:50%
+}
+.hero-orbit:before{inset:55px;animation:rotate 12s linear infinite reverse}
+.hero-orbit:after{inset:120px}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.orbit-dot{position:absolute;width:10px;height:10px;background:var(--orange);border-radius:50%;top:12px;left:50%;box-shadow:0 0 25px var(--orange);animation:dotPulse 1.7s infinite}
+@keyframes dotPulse{50%{box-shadow:0 0 42px 10px rgba(255,107,53,.28);transform:scale(1.5)}}
+
+section{padding:82px 0}
+.section-head{margin-bottom:32px}
+.section-label{font-size:10px;letter-spacing:1.5px;color:var(--orange);margin-bottom:9px}
+.section-head h2{font-size:36px;letter-spacing:-1.5px}
+.section-head p{color:#718097;font-size:13px;margin-top:8px;max-width:650px;line-height:1.7}
+
+.story{
+ display:grid;grid-template-columns:1fr 1fr;gap:22px
+}
+.story-card,.tech-card,.stat,.principle{
+ background:linear-gradient(145deg,rgba(16,25,40,.96),rgba(10,17,29,.96));
+ border:1px solid var(--border);border-radius:17px;padding:28px;position:relative;overflow:hidden;
+ transition:.45s cubic-bezier(.16,1,.3,1)
+}
+.story-card:hover,.tech-card:hover,.principle:hover{
+ transform:translateY(-8px);border-color:rgba(255,107,53,.45);
+ box-shadow:0 22px 55px rgba(0,0,0,.3),0 0 28px rgba(255,107,53,.08)
+}
+.story-card:after,.tech-card:after,.principle:after{
+ content:"";position:absolute;top:-40%;left:-80px;width:55px;height:180%;
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);
+ transform:rotate(20deg);animation:sweep 5s infinite
+}
+@keyframes sweep{0%,20%{left:-80px}55%,100%{left:120%}}
+.story-card h3{font-size:22px;margin-bottom:13px}.story-card p{color:#91a3bd;font-size:13px;line-height:1.9}
+.story-card strong{color:#fff}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.stat{text-align:center;padding:25px 15px;animation:rise .8s both}
+.stat:nth-child(2){animation-delay:.08s}.stat:nth-child(3){animation-delay:.16s}.stat:nth-child(4){animation-delay:.24s}
+@keyframes rise{from{opacity:0;transform:translateY(35px)}to{opacity:1;transform:none}}
+.stat .num{font-size:31px;font-weight:700;color:var(--orange);text-shadow:0 0 22px rgba(255,107,53,.15)}
+.stat .desc{font-size:11px;color:#718097;margin-top:5px}
+
+.pipeline{
+ display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;margin-top:42px
+}
+.pipeline:before{
+ content:"";position:absolute;left:11%;right:11%;top:43px;height:1px;
+ background:linear-gradient(90deg,transparent,var(--orange),var(--cyan),var(--orange),transparent);
+ box-shadow:0 0 15px rgba(255,107,53,.35)
+}
+.tech-card{padding:25px;min-height:235px;margin:0 7px}
+.icon{
+ width:58px;height:58px;border-radius:50%;display:grid;place-items:center;margin-bottom:20px;
+ border:1px solid #34415a;background:#0a1321;font-size:20px;position:relative;z-index:2;
+ box-shadow:0 0 25px rgba(56,189,248,.06)
+}
+.tech-card:nth-child(2) .icon{color:var(--orange)}
+.tech-card:nth-child(3) .icon{color:var(--cyan)}
+.tech-card:nth-child(4) .icon{color:var(--green)}
+.tech-card h3{font-size:16px;margin-bottom:9px}.tech-card p{font-size:12px;color:#7f91aa;line-height:1.75}
+.step{font-size:9px;color:#64748b;letter-spacing:1px;margin-bottom:7px}
+
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.principle h3{font-size:16px;margin-bottom:8px}.principle p{color:#7f91aa;font-size:12px;line-height:1.8}
+.principle .mark{color:var(--orange);font-size:20px;margin-bottom:15px}
+
+.final{
+ text-align:center;padding:100px 20px 120px;position:relative
+}
+.final:before{
+ content:"";position:absolute;left:50%;top:40px;width:500px;height:250px;transform:translateX(-50%);
+ background:radial-gradient(ellipse,rgba(255,107,53,.12),transparent 70%);pointer-events:none
+}
+.final h2{font-size:clamp(35px,5vw,58px);letter-spacing:-2px;position:relative}
+.final h2 span{color:var(--orange)}
+.final p{color:#8192aa;max-width:650px;margin:16px auto 28px;line-height:1.8;font-size:13px}
+.btn{
+ display:inline-flex;align-items:center;gap:12px;padding:13px 20px;border-radius:9px;
+ border:1px solid #4b566b;color:#fff;text-decoration:none;font-size:12px;
+ background:#111b2b;transition:.35s
+}
+.btn:hover{background:var(--orange);border-color:var(--orange);transform:translateY(-4px);box-shadow:0 14px 35px rgba(255,107,53,.2)}
+footer{padding:28px;text-align:center;border-top:1px solid #202b3f;color:#657288;font-size:12px}
+
+@media(max-width:1000px){
+ nav{gap:10px}.status{display:none}.hero-orbit{right:-230px;opacity:.35}
+ .pipeline{grid-template-columns:repeat(2,1fr);gap:15px}.pipeline:before{display:none}
+ .stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:650px){
+ header{padding:0 20px}nav{display:none}.container{width:94%}
+ .hero{min-height:550px}.hero-orbit{width:330px;height:330px;right:-190px;top:150px}
+ .story,.principles{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr}.stats{grid-template-columns:1fr}
+ section{padding:60px 0}h1{letter-spacing:-2px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Urban<span>Therm</span></div>
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="heatmap.html">Heat Map</a>
+        <a href="prediction.html">AI Prediction</a>
+        <a href="grid.html">Grid Intelligence</a>
+        <a href="about.html" class="active">About</a>
+        <a href="login.html">Logout</a>
+    </nav>
+    <div class="status">● SYSTEM ACTIVE</div>
+</header>
+
+<main>
+
+<section class="hero container">
+    <div class="hero-copy">
+        <div class="kicker">URBANTHERM · CLIMATE INTELLIGENCE</div>
+        <h1>Understand the<br><span>Heat Beneath.</span></h1>
+        <p>
+            UrbanTherm is a hyperlocal urban heat intelligence prototype for Ghaziabad,
+            combining satellite-derived land surface temperature, vegetation and built-up
+            indicators with environmental data and machine learning to understand heat risk
+            at a fine spatial scale.
+        </p>
+    </div>
+
+    <div class="hero-orbit">
+        <div class="orbit-dot"></div>
+    </div>
+</section>
+
+<section>
+<div class="container">
+    <div class="section-head">
+        <div class="section-label">01 · THE IDEA</div>
+        <h2>Why UrbanTherm?</h2>
+        <p>City-wide averages can hide the places where heat is concentrated.</p>
+    </div>
+
+    <div class="story">
+        <div class="story-card">
+            <h3>Heat is not evenly distributed.</h3>
+            <p>
+                Two nearby areas can experience very different thermal conditions because
+                of differences in <strong>vegetation, built-up surfaces and local environment</strong>.
+                UrbanTherm turns that spatial variation into an explorable grid-based view.
+            </p>
+        </div>
+        <div class="story-card">
+            <h3>From pixels to decisions.</h3>
+            <p>
+                The system processes a <strong>500m × 500m grid</strong> across the Ghaziabad
+                study area. Each cell can be inspected individually through the dashboard,
+                heat map and AI prediction interface.
+            </p>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat"><div class="num">3,881</div><div class="desc">Spatial grid cells</div></div>
+        <div class="stat"><div class="num">500m</div><div class="desc">Grid resolution</div></div>
+        <div class="stat"><div class="num">NDVI</div><div class="desc">Vegetation signal</div></div>
+        <div class="stat"><div class="num">NDBI</div><div class="desc">Built-up signal</div></div>
+    </div>
+</div>
+</section>
+
+<section>
+<div class="container">
+    <div class="section-head">
+        <div class="section-label">02 · PIPELINE</div>
+        <h2>How UrbanTherm Works</h2>
+        <p>A four-stage pipeline turns raw environmental observations into an interactive heat-risk view.</p>
+    </div>
+
+    <div class="pipeline">
+        <div class="tech-card">
+            <div class="icon">◉</div>
+            <div class="step">01 · OBSERVE</div>
+            <h3>Satellite Data</h3>
+            <p>
+                Landsat imagery provides spectral and thermal information for the study area,
+                including red, near-infrared, shortwave-infrared and thermal bands.
+            </p>
+        </div>
+
+        <div class="tech-card">
+            <div class="icon">≈</div>
+            <div class="step">02 · ENGINEER</div>
+            <h3>Environmental Features</h3>
+            <p>
+                Satellite signals are transformed into indicators such as
+                <strong>NDVI, NDBI and land surface temperature</strong>, then combined with weather features.
+            </p>
+        </div>
+
+        <div class="tech-card">
+            <div class="icon">⌁</div>
+            <div class="step">03 · ANALYZE</div>
+            <h3>Machine Learning</h3>
+            <p>
+                A Random Forest classifier uses environmental features to estimate the
+                heat-risk category for an individual grid cell.
+            </p>
+        </div>
+
+        <div class="tech-card">
+            <div class="icon">✦</div>
+            <div class="step">04 · EXPLORE</div>
+            <h3>Urban Intelligence</h3>
+            <p>
+                Results are exposed through interactive maps, grid-level inspection and
+                an AI prediction interface so spatial patterns can be explored visually.
+            </p>
+        </div>
+    </div>
+</div>
+</section>
+
+<section>
+<div class="container">
+    <div class="section-head">
+        <div class="section-label">03 · THE SIGNALS</div>
+        <h2>What the Model Sees</h2>
+        <p>UrbanTherm connects thermal conditions with the physical characteristics of the urban surface.</p>
+    </div>
+
+    <div class="principles">
+        <div class="principle">
+            <div class="mark">◌</div>
+            <h3>Land Surface Temperature</h3>
+            <p>Represents the observed thermal state of the land surface derived from satellite thermal data.</p>
+        </div>
+        <div class="principle">
+            <div class="mark">⌁</div>
+            <h3>Vegetation · NDVI</h3>
+            <p>Provides a vegetation-related signal that helps distinguish greener and less vegetated urban surfaces.</p>
+        </div>
+        <div class="principle">
+            <div class="mark">▦</div>
+            <h3>Built-up · NDBI</h3>
+            <p>Provides a built-up surface indicator that helps characterize the urban fabric around each grid cell.</p>
+        </div>
+    </div>
+</div>
+</section>
+
+<section class="final">
+    <h2>See Ghaziabad<br><span>differently.</span></h2>
+    <p>
+        Move from a city-wide picture to individual urban cells and explore where
+        thermal conditions, vegetation and built-up characteristics intersect.
+    </p>
+    <a href="heatmap.html" class="btn">Explore Heat Map <b>→</b></a>
+</section>
+
+</main>
+
+<footer>© 2026 UrbanTherm · Hyperlocal Urban Heat Intelligence</footer>
+
+</body>
+</html>

@@ -1,1839 +1,470 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>UrbanTherm | Urban Heat Intelligence</title>
+<title>UrbanTherm — Urban Heat Intelligence</title>
 
 <style>
-
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05070c;
+  --panel:#0b111d;
+  --panel2:#101827;
+  --line:#1d2a40;
+  --muted:#7d8da8;
+  --white:#f5f7fb;
+  --orange:#ff633d;
+  --green:#22d36c;
+  --yellow:#ffad19;
 }
-
+html{scroll-behavior:smooth}
 body{
-    font-family:Arial, sans-serif;
-    background:#080d18;
-    color:#f8fafc;
-    line-height:1.5;
+  background:var(--bg);color:var(--white);
+  font-family:Arial,Helvetica,sans-serif;
+  overflow-x:hidden;
 }
-
-
-/* =========================
-   HEADER
-========================= */
-
-header{
-    height:70px;
-    padding:0 5%;
-    border-bottom:1px solid #202b3f;
-
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-
-    background:#0b1220;
+a{color:inherit;text-decoration:none}
+.cursor-glow{
+  position:fixed;width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,86,48,.11),transparent 68%);
+  pointer-events:none;z-index:0;transform:translate(-50%,-50%);
+  transition:left .12s linear,top .12s linear;
 }
-
-.logo{
-    font-size:25px;
-    font-weight:700;
-    letter-spacing:.5px;
+nav{
+  height:74px;position:fixed;top:0;left:0;width:100%;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 5%;background:rgba(5,7,12,.72);backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.06)
 }
+.logo{font-size:22px;font-weight:900;letter-spacing:1.5px}
+.logo span{color:var(--orange)}
+.navlinks{display:flex;gap:30px;color:#7e8da7;font-size:13px}
+.navlinks a{transition:.25s}.navlinks a:hover{color:#fff}
+.online{display:flex;align-items:center;gap:8px;color:#8c9ab0;font-size:11px;letter-spacing:1px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 15px var(--green)}
+section{position:relative;z-index:1}
 
-.logo span{
-    color:#ff6b35;
-}
-
-.status{
-    font-size:13px;
-    color:#22c55e;
-
-    padding:7px 12px;
-    border:1px solid #1d5437;
-    border-radius:20px;
-    background:#0d2118;
-}
-
-
-/* =========================
-   MAIN
-========================= */
-
-.container{
-    width:90%;
-    max-width:1450px;
-    margin:auto;
-}
-
-
-/* =========================
-   HERO
-========================= */
-
-.hero{
-    padding:70px 0 45px;
-}
-
-.hero-label{
-    display:inline-block;
-
-    padding:7px 13px;
-
-    border:1px solid #39455d;
-    border-radius:20px;
-
-    color:#aeb9ca;
-    font-size:12px;
-
-    margin-bottom:20px;
-
-    letter-spacing:.5px;
-}
-
+/* HERO */
+.hero{min-height:100vh;padding:145px 6% 65px;display:flex;align-items:center;overflow:hidden}
+.hero-copy{width:53%;position:relative;z-index:20}
+.kicker{color:var(--orange);font-size:11px;font-weight:800;letter-spacing:4px;text-transform:uppercase;margin-bottom:24px}
 .hero h1{
-    font-size:52px;
-    line-height:1.1;
-    margin-bottom:20px;
+  font-size:clamp(60px,8.5vw,128px);line-height:.83;letter-spacing:-8px;
+  max-width:800px
 }
-
-.hero h1 span{
-    color:#ff6b35;
+.hero h1 em{font-style:normal;color:var(--orange)}
+.hero-text{max-width:650px;color:#8b9ab4;font-size:18px;line-height:1.7;margin:34px 0}
+.btn{
+  display:inline-flex;align-items:center;gap:18px;padding:16px 25px;border-radius:50px;
+  background:var(--orange);font-weight:800;font-size:14px;
+  box-shadow:0 0 40px rgba(255,99,61,.22);transition:.35s
 }
-
-.hero p{
-    max-width:850px;
-
-    color:#9aa7bb;
-
-    font-size:17px;
-
-    line-height:1.8;
+.btn:hover{transform:translateY(-4px);box-shadow:0 18px 55px rgba(255,99,61,.4)}
+.btn b{font-size:20px}
+.hero-meta{display:flex;gap:48px;margin-top:70px}
+.meta strong{font-size:27px}.meta small{display:block;color:#65758f;font-size:9px;letter-spacing:1.5px;margin-top:5px}
+.heatfield{position:absolute;right:-5%;top:9%;width:58%;height:82%;z-index:4}
+.heatfield:before{
+  content:"";position:absolute;width:620px;height:620px;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(255,68,35,.17),rgba(255,68,35,.03) 38%,transparent 68%);
+  filter:blur(8px)
 }
-
-
-/* =========================
-   SECTION
-========================= */
-
-.section{
-    margin-top:42px;
+.heatgrid{
+  position:absolute;width:650px;height:650px;left:50%;top:50%;
+  transform:translate(-50%,-50%) perspective(700px) rotateX(62deg) rotateZ(-12deg);
+  background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
+  background-size:35px 35px;
+  mask-image:radial-gradient(circle,black 18%,transparent 72%);
+  animation:grid 14s linear infinite
 }
-
-.section-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:end;
-
-    margin-bottom:18px;
+@keyframes grid{to{background-position:70px 70px}}
+.hotspot{
+  position:absolute;width:16px;height:16px;border-radius:50%;
+  background:var(--orange);box-shadow:0 0 12px var(--orange),0 0 45px rgba(255,99,61,.8);
+  animation:pulse 2.8s ease-in-out infinite
 }
-
-.section h2{
-    font-size:24px;
+.hotspot:after{content:"";position:absolute;inset:-12px;border:1px solid rgba(255,99,61,.3);border-radius:50%;animation:ring 2.8s infinite}
+@keyframes pulse{50%{transform:scale(1.45)}} @keyframes ring{to{transform:scale(2.4);opacity:0}}
+.h1{left:34%;top:34%}.h2{left:57%;top:27%;background:var(--yellow);box-shadow:0 0 12px var(--yellow),0 0 40px rgba(255,173,25,.7);animation-delay:.5s}.h3{left:49%;top:57%;animation-delay:1s}.h4{left:72%;top:47%;background:var(--yellow);box-shadow:0 0 12px var(--yellow),0 0 40px rgba(255,173,25,.7);animation-delay:1.4s}.h5{left:31%;top:67%;background:var(--green);box-shadow:0 0 12px var(--green),0 0 40px rgba(34,211,108,.65);animation-delay:1.8s}
+.scan{position:absolute;left:18%;top:48%;width:65%;height:2px;background:linear-gradient(90deg,transparent,var(--orange),transparent);box-shadow:0 0 15px var(--orange);animation:scan 4.5s linear infinite}
+@keyframes scan{to{transform:rotate(360deg);transform-origin:50% 50%}}
+.telemetry{
+  position:absolute;padding:15px 18px;border:1px solid rgba(255,255,255,.11);
+  background:rgba(8,13,22,.82);backdrop-filter:blur(16px);border-radius:14px;
+  box-shadow:0 20px 50px rgba(0,0,0,.4);animation:float 5s ease-in-out infinite
 }
+.telemetry small{display:block;color:#64738c;font-size:9px;letter-spacing:1.4px;margin-bottom:6px}
+.telemetry strong{font-size:22px}.t-temp{right:8%;top:15%}.t-temp strong{color:var(--orange)}
+.t-risk{right:23%;bottom:20%;animation-delay:1s}.t-risk strong{color:var(--yellow)}
+.t-cells{left:10%;bottom:12%;animation-delay:1.8s}.t-cells strong{color:var(--green)}
+@keyframes float{50%{transform:translateY(-13px)}}
 
-.section-subtitle{
-    color:#748197;
-    font-size:13px;
+/* LIVE WIDGET */
+.live-strip{padding:0 6% 110px}
+.live-panel{
+  border:1px solid var(--line);background:linear-gradient(120deg,#0a101a,#080c14);
+  border-radius:22px;padding:24px 28px;display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:25px;
+  box-shadow:0 25px 80px rgba(0,0,0,.25)
 }
+.live-title small,.widget small{display:block;color:#687995;font-size:9px;letter-spacing:1.5px;margin-bottom:7px}
+.live-title strong{font-size:22px}
+.live-title p{color:#70819d;font-size:12px;margin-top:6px}
+.mini-stat{border-left:1px solid var(--line);padding-left:22px}
+.mini-stat strong{font-size:25px}.mini-stat span{display:block;color:#647590;font-size:10px;margin-top:5px}
+.riskbar{height:7px;background:#192338;border-radius:10px;margin-top:12px;overflow:hidden}
+.riskbar i{display:block;width:68%;height:100%;background:linear-gradient(90deg,#22d36c,#ffad19,#ff633d);border-radius:10px;animation:bar 2s ease-out}
+@keyframes bar{from{width:0}}
 
-
-/* =========================
-   RISK CARDS
-========================= */
-
-.cards{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:16px;
+/* STORY */
+.story{min-height:185vh}
+.sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center}
+.story-title{position:absolute;left:6%;top:16%;z-index:20}
+.story-title small{color:var(--orange);letter-spacing:3px;font-size:10px}
+.story-title h2{font-size:clamp(48px,6.5vw,92px);line-height:.87;letter-spacing:-6px;margin-top:15px}
+.story-title p{color:#70819c;font-size:14px;margin-top:20px;max-width:330px;line-height:1.6}
+.story-orbit{position:absolute;right:7%;top:50%;transform:translateY(-50%);width:590px;height:590px}
+.orbit-ring{position:absolute;border:1px solid rgba(255,255,255,.08);border-radius:50%;inset:0}
+.orbit-ring.r2{inset:80px;border-color:rgba(255,99,61,.18)}.orbit-ring.r3{inset:160px;border-color:rgba(255,99,61,.28)}
+.core{
+  position:absolute;left:50%;top:50%;width:130px;height:130px;transform:translate(-50%,-50%);
+  border-radius:50%;display:grid;place-items:center;text-align:center;font-weight:900;font-size:12px;
+  background:#0e1624;border:1px solid rgba(255,99,61,.55);box-shadow:0 0 80px rgba(255,99,61,.18)
 }
-
-.card{
-    background:#101827;
-
-    border:1px solid #202b3f;
-
-    border-radius:14px;
-
-    padding:24px;
-
-    transition:.2s;
+.story-node{
+  position:absolute;min-width:175px;padding:15px 17px;border-radius:14px;
+  background:rgba(8,13,22,.9);border:1px solid #1c2a40;backdrop-filter:blur(15px);
+  opacity:0;transform:scale(.8);transition:.55s
 }
+.story-node.active{opacity:1;transform:scale(1);border-color:rgba(255,99,61,.48)}
+.story-node small{display:block;color:#64748c;font-size:9px;letter-spacing:1.2px;margin-bottom:6px}
+.story-node strong{font-size:16px}
+.n1{left:-5px;top:65px}.n2{right:-5px;top:120px}.n3{left:-20px;bottom:90px}.n4{right:-10px;bottom:75px}.n5{left:50%;bottom:-20px;transform:translateX(-50%) scale(.8)}.n5.active{transform:translateX(-50%) scale(1)}
+.story-copy{position:absolute;left:6%;bottom:14%;width:390px;opacity:0;transform:translateY(25px);transition:.55s}
+.story-copy.active{opacity:1;transform:none}.story-copy h3{font-size:32px;margin-bottom:12px}.story-copy p{color:#7888a2;line-height:1.7;font-size:14px}
+.steps{position:absolute;right:4%;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:13px}.steps i{width:6px;height:6px;border-radius:50%;background:#26344b}.steps i.active{background:var(--orange);box-shadow:0 0 15px var(--orange)}
 
-.card:hover{
-    border-color:#344158;
-    transform:translateY(-2px);
+/* FEATURES */
+.features{padding:150px 6%}
+.section-kicker{color:var(--orange);font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px}
+.features h2{font-size:clamp(45px,6vw,82px);line-height:.9;letter-spacing:-5px;margin-bottom:70px}
+.feature-list{border-top:1px solid var(--line)}
+.feature-row{
+  min-height:115px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:90px 1fr 70px;
+  align-items:center;gap:20px;padding:0 10px;transition:.45s
 }
+.feature-row:hover{background:#0b111c;padding-left:28px;padding-right:28px}
+.feature-row .num{color:var(--orange);font-size:11px}.feature-row h3{font-size:30px}.feature-row p{color:#71829d;font-size:12px;margin-top:7px;max-width:560px;line-height:1.5}
+.feature-row .arrow{font-size:24px;color:#5f718d;transition:.3s}.feature-row:hover .arrow{color:var(--orange);transform:translateX(8px)}
 
-.card-title{
-    color:#7f8ca2;
-    font-size:12px;
-
-    letter-spacing:.7px;
-
-    margin-bottom:12px;
+/* MAP */
+.map-section{padding:130px 5%}
+.map-top{display:flex;justify-content:space-between;align-items:end;margin-bottom:35px}
+.map-top h2{font-size:clamp(45px,6vw,82px);line-height:.9;letter-spacing:-5px}
+.map-top p{max-width:340px;color:#7788a2;line-height:1.6;font-size:13px}
+.mapbox{height:650px;border-radius:25px;overflow:hidden;border:1px solid var(--line);position:relative;background:#0a101a;box-shadow:0 30px 100px rgba(0,0,0,.45)}
+.mapbox iframe{width:100%;height:100%;border:0}
+.map-card{
+  position:absolute;z-index:5;left:25px;top:25px;min-width:190px;padding:17px 20px;
+  background:rgba(5,9,15,.88);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.12);border-radius:14px
 }
+.map-card small{display:block;color:#667792;font-size:9px;letter-spacing:1.4px;margin-bottom:6px}.map-card strong{font-size:27px;color:var(--orange)}
+.map-stats{position:absolute;right:25px;top:25px;z-index:5;display:flex;gap:10px}
+.map-stat{padding:14px 16px;background:rgba(5,9,15,.88);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.1);border-radius:13px}
+.map-stat b{display:block;font-size:19px}.map-stat span{color:#667792;font-size:9px}
+.map-btn{position:absolute;right:25px;bottom:25px;z-index:5}
 
-.card-value{
-    font-size:32px;
-    font-weight:700;
+/* RISK */
+.risk-section{padding:120px 6%;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.risk-section h2{font-size:clamp(45px,6vw,78px);line-height:.9;letter-spacing:-5px}
+.risk-section p{color:#7888a2;line-height:1.7;font-size:14px;max-width:500px;margin-top:25px}
+.risk-bars{display:flex;flex-direction:column;gap:25px}
+.risk-line{display:grid;grid-template-columns:90px 1fr 55px;gap:15px;align-items:center;font-size:11px}
+.risk-line .bar{height:10px;background:#172237;border-radius:20px;overflow:hidden}
+.risk-line .bar i{display:block;height:100%;border-radius:20px;width:0;transition:1.3s}
+.risk-line.high .bar i{background:#ff4935}.risk-line.medium .bar i{background:#ffad19}.risk-line.low .bar i{background:#22d36c}
+.risk-bars.visible .high .bar i{width:100%}.risk-bars.visible .medium .bar i{width:97%}.risk-bars.visible .low .bar i{width:97%}
+
+/* CTA */
+.cta{min-height:75vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.cta:before{content:"";position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(255,70,35,.13),transparent 68%);filter:blur(15px)}
+.cta h2{position:relative;font-size:clamp(52px,7.5vw,105px);line-height:.86;letter-spacing:-7px;max-width:1000px}
+.cta p{position:relative;color:#7888a2;margin:28px 0 35px;font-size:14px}
+.cta .btn{position:relative;z-index:10;cursor:pointer}
+footer{padding:35px 6%;border-top:1px solid #151e2d;color:#53647c;font-size:10px;display:flex;justify-content:space-between}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(35px);transition:1s}.reveal.show{opacity:1;transform:none}
+
+@media(max-width:950px){
+  .navlinks{display:none}
+  .hero-copy{width:100%}.heatfield{opacity:.32;width:100%;right:-25%}
+  .live-panel{grid-template-columns:1fr 1fr}
+  .story-orbit{right:-130px;opacity:.6}.story-title{top:12%}
+  .features{padding-top:100px}.feature-row h3{font-size:23px}
+  .risk-section{grid-template-columns:1fr}
 }
-
-.card-description{
-    color:#69768b;
-    font-size:12px;
-    margin-top:8px;
+@media(max-width:600px){
+  .hero h1{letter-spacing:-5px}.hero-text{font-size:16px}
+  .hero-meta{gap:22px}.meta strong{font-size:22px}
+  .live-panel{grid-template-columns:1fr}
+  .mini-stat{border-left:0;border-top:1px solid var(--line);padding:15px 0 0}
+  .story-orbit{right:-220px;opacity:.38}.story-copy{width:80%}
+  .feature-row{grid-template-columns:45px 1fr 30px}.feature-row p{display:none}
+  .map-top{display:block}.map-top p{margin-top:22px}.mapbox{height:520px}
+  .map-stats{display:none}.risk-section{gap:45px}
+  footer{flex-direction:column;gap:10px}
 }
-
-.high{
-    color:#ef4444;
-}
-
-.medium{
-    color:#f59e0b;
-}
-
-.low{
-    color:#22c55e;
-}
-
-
-/* =========================
-   MAP
-========================= */
-
-.map-container{
-    background:#101827;
-
-    border:1px solid #202b3f;
-
-    border-radius:14px;
-
-    padding:16px;
-}
-
-.filters{
-    display:flex;
-    gap:8px;
-
-    margin-bottom:14px;
-}
-
-.filter{
-    background:#182235;
-
-    color:#aeb9ca;
-
-    border:1px solid #2b374d;
-
-    padding:9px 16px;
-
-    border-radius:7px;
-
-    cursor:pointer;
-
-    font-size:13px;
-
-    transition:.2s;
-}
-
-.filter:hover{
-    background:#222e43;
-    color:white;
-}
-
-.filter.active{
-    background:#ff6b35;
-    border-color:#ff6b35;
-    color:white;
-}
-
-iframe{
-    width:100%;
-    height:620px;
-
-    border:none;
-
-    border-radius:9px;
-
-    background:white;
-}
-
-
-/* =========================
-   GRID INTELLIGENCE
-========================= */
-
-.grid-panel{
-    background:#101827;
-
-    border:1px solid #202b3f;
-
-    border-radius:14px;
-
-    padding:25px;
-}
-
-.grid-search{
-    display:flex;
-    gap:10px;
-
-    max-width:700px;
-
-    margin-bottom:18px;
-}
-
-.grid-search input{
-    flex:1;
-
-    background:#0b1220;
-
-    color:white;
-
-    border:1px solid #2b374d;
-
-    border-radius:8px;
-
-    padding:13px 15px;
-
-    font-size:14px;
-
-    outline:none;
-}
-
-.grid-search input:focus{
-    border-color:#ff6b35;
-}
-
-.grid-search button{
-    background:#ff6b35;
-
-    color:white;
-
-    border:none;
-
-    border-radius:8px;
-
-    padding:13px 20px;
-
-    cursor:pointer;
-
-    font-weight:600;
-}
-
-.grid-search button:hover{
-    background:#e85b2c;
-}
-
-#gridMessage{
-    color:#7f8ca2;
-
-    font-size:13px;
-
-    margin-bottom:20px;
-}
-
-.grid-info{
-    display:grid;
-
-    grid-template-columns:repeat(3,1fr);
-
-    gap:12px;
-}
-
-.grid-item{
-    background:#182235;
-
-    border:1px solid #253148;
-
-    border-radius:9px;
-
-    padding:18px;
-}
-
-.grid-item-title{
-    color:#7f8ca2;
-
-    font-size:11px;
-
-    letter-spacing:.6px;
-
-    margin-bottom:8px;
-}
-
-.grid-item-value{
-    font-size:21px;
-
-    font-weight:600;
-}
-
-
-/* =========================
-   WEATHER
-========================= */
-
-.weather-grid{
-    display:grid;
-
-    grid-template-columns:repeat(4,1fr);
-
-    gap:16px;
-}
-
-.weather-card{
-    background:#101827;
-
-    border:1px solid #202b3f;
-
-    border-radius:14px;
-
-    padding:22px;
-}
-
-.weather-card h3{
-    color:#7f8ca2;
-
-    font-size:11px;
-
-    letter-spacing:.6px;
-
-    margin-bottom:10px;
-}
-
-.weather-value{
-    font-size:27px;
-
-    font-weight:600;
-}
-
-
-/* =========================
-   TREND
-========================= */
-
-.chart{
-    background:#101827;
-
-    border:1px solid #202b3f;
-
-    border-radius:14px;
-
-    padding:18px;
-}
-
-.chart img{
-    width:100%;
-
-    display:block;
-
-    border-radius:8px;
-}
-
-
-/* =========================
-   ML ENGINE
-========================= */
-
-.ml-box{
-    background:#101827;
-
-    border:1px solid #202b3f;
-
-    border-radius:14px;
-
-    padding:26px;
-}
-
-.ml-header{
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:18px;
-}
-
-.ml-badge{
-    font-size:11px;
-
-    color:#ff9a73;
-
-    border:1px solid #633421;
-
-    background:#24140e;
-
-    padding:6px 10px;
-
-    border-radius:15px;
-}
-
-.ml-box p{
-    color:#8d9aaf;
-
-    line-height:1.7;
-
-    font-size:14px;
-
-    max-width:900px;
-
-    margin-bottom:22px;
-}
-
-.ml-stats{
-    display:grid;
-
-    grid-template-columns:repeat(3,1fr);
-
-    gap:14px;
-}
-
-.ml-stat{
-    background:#182235;
-
-    border:1px solid #253148;
-
-    padding:19px;
-
-    border-radius:9px;
-}
-
-.ml-stat h3{
-    color:#7f8ca2;
-
-    font-size:11px;
-
-    letter-spacing:.6px;
-
-    margin-bottom:8px;
-}
-
-.ml-stat div{
-    font-size:22px;
-
-    font-weight:600;
-}
-
-
-/* =========================
-   FOOTER
-========================= */
-
-footer{
-    margin-top:70px;
-
-    padding:28px;
-
-    text-align:center;
-
-    color:#657288;
-
-    border-top:1px solid #202b3f;
-
-    font-size:12px;
-}
-
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media(max-width:1000px){
-
-    .cards,
-    .weather-grid{
-        grid-template-columns:repeat(2,1fr);
-    }
-
-    .grid-info{
-        grid-template-columns:repeat(2,1fr);
-    }
-
-}
-
-@media(max-width:650px){
-
-    header{
-        padding:0 20px;
-    }
-
-    .container{
-        width:94%;
-    }
-
-    .hero{
-        padding-top:45px;
-    }
-
-    .hero h1{
-        font-size:38px;
-    }
-
-    .cards,
-    .weather-grid,
-    .grid-info,
-    .ml-stats{
-        grid-template-columns:1fr;
-    }
-
-    .filters{
-        flex-wrap:wrap;
-    }
-
-    .grid-search{
-        flex-direction:column;
-    }
-
-    iframe{
-        height:500px;
-    }
-
-}
-
 </style>
-
 </head>
-
 
 <body>
 
+<div class="cursor-glow" id="cursorGlow"></div>
 
-<!-- =========================
-     HEADER
-========================= -->
+<nav>
+  <a class="logo" href="#">URBAN<span>THERM</span></a>
+  <div class="navlinks">
+    <a href="#story">Intelligence</a>
+    <a href="#features">Insights</a>
+    <a href="#map">Heat Map</a>
+    <a href="dashboard.html">Dashboard</a>
+  </div>
+  <div class="online"><i class="dot"></i>SYSTEM ONLINE</div>
+</nav>
 
-<header>
-
-    <div class="logo">
-        Urban<span>Therm</span>
-    </div>
-
-    <div
-        class="status"
-        id="apiStatus">
-
-        ● Connecting to API...
-
-    </div>
-
-</header>
-
-
-<div class="container">
-
-
-<!-- =========================
-     HERO
-========================= -->
-
+<!-- HERO -->
 <section class="hero">
-
-    <div class="hero-label">
-        GHaziabad • SATELLITE + AI
-    </div>
-
-    <h1>
-        Urban Heat
-        <span>Intelligence</span>
-    </h1>
-
-    <p>
-
-        AI-powered hyperlocal heat-risk intelligence for Ghaziabad.
-        UrbanTherm combines satellite-derived land surface temperature,
-        vegetation, built-up indicators and weather information to
-        identify urban heat-risk patterns at grid level.
-
+  <div class="hero-copy">
+    <div class="kicker">Urban Heat Intelligence</div>
+    <h1>THE CITY<br>IS <em>HEATING.</em></h1>
+    <p class="hero-text">
+      Heat isn't distributed equally. UrbanTherm combines satellite-derived
+      land surface temperature, vegetation, built-environment indicators and
+      machine learning to reveal Ghaziabad's thermal patterns.
     </p>
+    <a href="dashboard.html" class="btn">Explore UrbanTherm <b>→</b></a>
 
+    <div class="hero-meta">
+      <div class="meta"><strong>3,881</strong><small>SPATIAL CELLS</small></div>
+      <div class="meta"><strong>500m</strong><small>GRID RESOLUTION</small></div>
+      <div class="meta"><strong>AI + SAT</strong><small>INTELLIGENCE</small></div>
+    </div>
+  </div>
+
+  <div class="heatfield">
+    <div class="heatgrid"></div>
+    <div class="scan"></div>
+    <div class="hotspot h1"></div><div class="hotspot h2"></div><div class="hotspot h3"></div>
+    <div class="hotspot h4"></div><div class="hotspot h5"></div>
+
+    <div class="telemetry t-temp">
+      <small>LAND SURFACE TEMP.</small><strong>44.46°C</strong>
+    </div>
+    <div class="telemetry t-risk">
+      <small>OBSERVED RISK</small><strong>MEDIUM</strong>
+    </div>
+    <div class="telemetry t-cells">
+      <small>GRID CELLS</small><strong>3,881</strong>
+    </div>
+  </div>
 </section>
 
-
-<!-- =========================
-     OVERVIEW
-========================= -->
-
-<section class="section">
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Heat Risk Overview
-            </h2>
-
-            <div class="section-subtitle">
-                500m × 500m spatial analysis
-            </div>
-
-        </div>
-
+<!-- LIVE WIDGET -->
+<section class="live-strip reveal">
+  <div class="live-panel">
+    <div class="live-title">
+      <small>URBANTHERM TELEMETRY</small>
+      <strong>Heat intelligence snapshot</strong>
+      <p>Observed satellite + environmental indicators</p>
     </div>
-
-
-    <div class="cards">
-
-
-        <div class="card">
-
-            <div class="card-title">
-                TOTAL GRID CELLS
-            </div>
-
-            <div
-                class="card-value"
-                id="totalCells">
-
-                ...
-
-            </div>
-
-            <div class="card-description">
-                Analysed spatial cells
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="card-title">
-                HIGH RISK
-            </div>
-
-            <div
-                class="card-value high"
-                id="highRisk">
-
-                ...
-
-            </div>
-
-            <div class="card-description">
-                Highest heat-risk category
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="card-title">
-                MEDIUM RISK
-            </div>
-
-            <div
-                class="card-value medium"
-                id="mediumRisk">
-
-                ...
-
-            </div>
-
-            <div class="card-description">
-                Moderate heat-risk category
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="card-title">
-                LOW RISK
-            </div>
-
-            <div
-                class="card-value low"
-                id="lowRisk">
-
-                ...
-
-            </div>
-
-            <div class="card-description">
-                Lower heat-risk category
-            </div>
-
-        </div>
-
-
+    <div class="mini-stat">
+      <small>LST</small><strong>44.46°C</strong><span>SELECTED GRID · G2000</span>
     </div>
-
+    <div class="mini-stat">
+      <small>VEGETATION</small><strong>0.429</strong><span>NDVI INDEX</span>
+    </div>
+    <div class="mini-stat">
+      <small>HEAT LEVEL</small><strong>55.3</strong><span>RISK SCORE</span><div class="riskbar"><i></i></div>
+    </div>
+  </div>
 </section>
 
-
-<!-- =========================
-     MAP
-========================= -->
-
-<section class="section">
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Ghaziabad Heat Risk Map
-            </h2>
-
-            <div class="section-subtitle">
-                Satellite-derived spatial heat-risk distribution
-            </div>
-
-        </div>
-
+<!-- STORY -->
+<section class="story" id="story">
+  <div class="sticky">
+    <div class="story-title">
+      <small>URBANTHERM INTELLIGENCE</small>
+      <h2>HEAT HAS<br>A PATTERN.</h2>
+      <p>Scroll through the pipeline. Every layer adds another piece to the city's thermal story.</p>
     </div>
 
+    <div class="story-orbit">
+      <div class="orbit-ring"></div><div class="orbit-ring r2"></div><div class="orbit-ring r3"></div>
+      <div class="core">URBANTHERM<br>AI ENGINE</div>
 
-    <div class="map-container">
-
-
-        <div class="filters">
-
-
-            <button
-                class="filter active"
-                onclick="selectRisk('All', this)">
-
-                All
-
-            </button>
-
-
-            <button
-                class="filter"
-                onclick="selectRisk('High', this)">
-
-                High Risk
-
-            </button>
-
-
-            <button
-                class="filter"
-                onclick="selectRisk('Medium', this)">
-
-                Medium Risk
-
-            </button>
-
-
-            <button
-                class="filter"
-                onclick="selectRisk('Low', this)">
-
-                Low Risk
-
-            </button>
-
-
-        </div>
-
-
-        <iframe
-            id="heatMap"
-            src="../docs/ghaziabad_heat_risk_map.html">
-        </iframe>
-
-
+      <div class="story-node n1"><small>DATA SOURCE</small><strong>🛰 Satellite</strong></div>
+      <div class="story-node n2"><small>SURFACE HEAT</small><strong>LST · 44.46°C</strong></div>
+      <div class="story-node n3"><small>VEGETATION</small><strong>NDVI · 0.429</strong></div>
+      <div class="story-node n4"><small>BUILT ENVIRONMENT</small><strong>NDBI · -0.117</strong></div>
+      <div class="story-node n5"><small>URBANTHERM OUTPUT</small><strong>🔴 HEAT RISK</strong></div>
     </div>
 
+    <div class="story-copy" id="storyCopy">
+      <h3 id="storyHeading">Satellite Data</h3>
+      <p id="storyText">The pipeline begins with satellite-derived environmental information covering the Ghaziabad study area.</p>
+    </div>
+
+    <div class="steps"><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
 </section>
 
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-kicker">What UrbanTherm sees</div>
+  <h2 class="reveal">A CITY IS MORE THAN<br>A TEMPERATURE.</h2>
 
-<!-- =========================
-     GRID INTELLIGENCE
-========================= -->
-
-<section class="section">
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Grid Intelligence
-            </h2>
-
-            <div class="section-subtitle">
-                Satellite and machine-learning analysis
-            </div>
-
-        </div>
-
+  <div class="feature-list reveal">
+    <div class="feature-row">
+      <div class="num">01</div>
+      <div><h3>Surface Heat</h3><p>Satellite-derived land surface temperature reveals where urban surfaces absorb and retain heat.</p></div>
+      <div class="arrow">→</div>
     </div>
-
-
-    <div class="grid-panel">
-
-
-        <div class="grid-search">
-
-            <input
-                type="text"
-                id="gridInput"
-                placeholder="Enter Grid ID e.g. G1086">
-
-
-            <button
-                onclick="searchGrid()">
-
-                Search Grid
-
-            </button>
-
-        </div>
-
-
-        <div id="gridMessage">
-
-            Search a grid cell to view
-            satellite and ML intelligence.
-
-        </div>
-
-
-        <div
-            class="grid-info"
-            id="gridInfo"
-            style="display:none;">
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    GRID ID
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridId">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    OBSERVED RISK
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridRisk">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    ML PREDICTION
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridMLPrediction">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    LAND SURFACE TEMP.
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridLst">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    NDVI
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridNdvi">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    NDBI
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridNdbi">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    HEAT RISK SCORE
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridScore">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    AVG TEMPERATURE
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridTemperature">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-            <div class="grid-item">
-
-                <div class="grid-item-title">
-                    HUMIDITY
-                </div>
-
-                <div
-                    class="grid-item-value"
-                    id="gridHumidity">
-
-                    --
-
-                </div>
-
-            </div>
-
-
-        </div>
-
+    <div class="feature-row">
+      <div class="num">02</div>
+      <div><h3>Vegetation</h3><p>NDVI helps describe vegetation coverage and its relationship with the thermal characteristics of urban areas.</p></div>
+      <div class="arrow">→</div>
     </div>
-
+    <div class="feature-row">
+      <div class="num">03</div>
+      <div><h3>Built Environment</h3><p>NDBI provides a spatial indicator of built-up surfaces and urban development patterns.</p></div>
+      <div class="arrow">→</div>
+    </div>
+    <div class="feature-row">
+      <div class="num">04</div>
+      <div><h3>AI Intelligence</h3><p>A Random Forest model combines environmental indicators to classify spatial heat-risk categories.</p></div>
+      <div class="arrow">→</div>
+    </div>
+  </div>
 </section>
 
+<!-- MAP -->
+<section class="map-section" id="map">
+  <div class="map-top">
+    <div>
+      <div class="section-kicker">Spatial Intelligence</div>
+      <h2>WHERE DOES<br>THE HEAT LIVE?</h2>
+    </div>
+    <p>Explore the observed thermal distribution across 3,881 Ghaziabad spatial cells.</p>
+  </div>
 
-<!-- =========================
-     WEATHER
-========================= -->
+  <div class="mapbox reveal">
+    <iframe src="../docs/ghaziabad_heat_risk_map.html" title="Ghaziabad Heat Risk Map"></iframe>
 
-<section class="section">
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Weather Intelligence
-            </h2>
-
-            <div class="section-subtitle">
-                Daily atmospheric conditions
-            </div>
-
-        </div>
-
+    <div class="map-card">
+      <small>HOTTEST OBSERVED CELL</small>
+      <strong>54.96°C</strong>
     </div>
 
-
-    <div class="weather-grid">
-
-
-        <div class="weather-card">
-
-            <h3>
-                AVERAGE TEMPERATURE
-            </h3>
-
-            <div
-                class="weather-value"
-                id="avgTemperature">
-
-                --
-
-            </div>
-
-        </div>
-
-
-        <div class="weather-card">
-
-            <h3>
-                MAX TEMPERATURE
-            </h3>
-
-            <div
-                class="weather-value"
-                id="maxTemperature">
-
-                --
-
-            </div>
-
-        </div>
-
-
-        <div class="weather-card">
-
-            <h3>
-                HUMIDITY
-            </h3>
-
-            <div
-                class="weather-value"
-                id="humidity">
-
-                --
-
-            </div>
-
-        </div>
-
-
-        <div class="weather-card">
-
-            <h3>
-                WIND SPEED
-            </h3>
-
-            <div
-                class="weather-value"
-                id="windSpeed">
-
-                --
-
-            </div>
-
-        </div>
-
-
+    <div class="map-stats">
+      <div class="map-stat"><b>1,320</b><span>HIGH RISK</span></div>
+      <div class="map-stat"><b>1,280</b><span>MEDIUM</span></div>
+      <div class="map-stat"><b>1,281</b><span>LOW</span></div>
     </div>
 
+    <div class="map-btn">
+      <a href="dashboard.html" class="btn">Open Full Intelligence <b>→</b></a>
+    </div>
+  </div>
 </section>
 
+<!-- RISK DISTRIBUTION -->
+<section class="risk-section">
+  <div class="reveal">
+    <div class="section-kicker">Heat-risk distribution</div>
+    <h2>THE CITY<br>ISN'T EQUALLY<br>HOT.</h2>
+    <p>
+      UrbanTherm classifies each 500m spatial cell into observed Low,
+      Medium or High heat-risk categories using satellite-derived surface temperature.
+    </p>
+  </div>
 
-<!-- =========================
-     TREND
-========================= -->
-
-<section class="section">
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Heat Risk Trend
-            </h2>
-
-            <div class="section-subtitle">
-                Daily heat-risk score across 2025
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="chart">
-
-        <img
-            src="../docs/heat_risk_trend.png"
-            alt="Ghaziabad Heat Risk Trend">
-
-    </div>
-
+  <div class="risk-bars reveal">
+    <div class="risk-line high"><span>HIGH</span><div class="bar"><i></i></div><b>1320</b></div>
+    <div class="risk-line medium"><span>MEDIUM</span><div class="bar"><i></i></div><b>1280</b></div>
+    <div class="risk-line low"><span>LOW</span><div class="bar"><i></i></div><b>1281</b></div>
+  </div>
 </section>
 
-
-<!-- =========================
-     ML ENGINE
-========================= -->
-
-<section class="section">
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                UrbanTherm ML Engine
-            </h2>
-
-            <div class="section-subtitle">
-                Random Forest spatial classification
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="ml-box">
-
-
-        <div class="ml-header">
-
-            <strong>
-                Machine Learning Model
-            </strong>
-
-            <div class="ml-badge">
-                RANDOM FOREST
-            </div>
-
-        </div>
-
-
-        <p>
-
-            The UrbanTherm machine-learning engine uses
-            spatial environmental indicators including NDVI
-            and NDBI together with weather features for
-            heat-risk classification.
-
-        </p>
-
-
-        <div class="ml-stats">
-
-
-            <div class="ml-stat">
-
-                <h3>
-                    MODEL
-                </h3>
-
-                <div>
-                    Random Forest
-                </div>
-
-            </div>
-
-
-            <div class="ml-stat">
-
-                <h3>
-                    NDVI IMPORTANCE
-                </h3>
-
-                <div>
-                    50.89%
-                </div>
-
-            </div>
-
-
-            <div class="ml-stat">
-
-                <h3>
-                    NDBI IMPORTANCE
-                </h3>
-
-                <div>
-                    49.11%
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-</section>
-
-
-</div>
-
-
-<!-- =========================
-     FOOTER
-========================= -->
-
+<!-- CTA -->
+<section class="cta">
+  <div class="section-kicker">Ghaziabad · India</div>
+  <h2>SEE YOUR CITY<br>DIFFERENTLY.</h2>
+  <p>Explore UrbanTherm's hyperlocal heat intelligence.</p>
+  <a href="login.html" class="btn" onclick="window.location.href='login.html'; return false;">
+    Enter UrbanTherm <b>→</b>
+</a>
+ </section>
 <footer>
-
-    UrbanTherm — Hyperlocal Urban Heat Intelligence
-
+  <div>© 2026 UrbanTherm</div>
+  <div>Satellite · AI · Urban Intelligence</div>
 </footer>
 
-
 <script>
+/* cursor glow */
+const glow=document.getElementById("cursorGlow");
+window.addEventListener("mousemove",e=>{
+  glow.style.left=e.clientX+"px";
+  glow.style.top=e.clientY+"px";
+});
 
+/* reveal animations */
+const reveals=document.querySelectorAll(".reveal");
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("show")});
+},{threshold:.12});
+reveals.forEach(x=>observer.observe(x));
 
-/* =========================
-   API
-========================= */
+/* scroll story */
+const story=document.querySelector(".story");
+const nodes=document.querySelectorAll(".story-node");
+const dots=document.querySelectorAll(".steps i");
+const heading=document.getElementById("storyHeading");
+const text=document.getElementById("storyText");
+const copy=document.getElementById("storyCopy");
 
-const API_URL =
-    "http://127.0.0.1:5000";
+const storyData=[
+  ["Satellite Data","The pipeline begins with satellite-derived environmental information covering the Ghaziabad study area."],
+  ["Surface Heat","Land Surface Temperature reveals where urban surfaces are absorbing and retaining thermal energy."],
+  ["Vegetation","NDVI helps describe vegetation coverage and its relationship with urban thermal conditions."],
+  ["Built Environment","NDBI provides a spatial indicator of built-up surfaces and urban development patterns."],
+  ["AI Heat Intelligence","Random Forest combines environmental indicators to classify spatial heat-risk categories."]
+];
 
+function updateStory(){
+  const r=story.getBoundingClientRect();
+  const total=story.offsetHeight-innerHeight;
+  let p=Math.max(0,Math.min(1,-r.top/total));
+  let step=Math.min(4,Math.floor(p*5));
 
-/* =========================
-   LOAD DATA
-========================= */
+  nodes.forEach((n,i)=>n.classList.toggle("active",i<=step));
+  dots.forEach((d,i)=>d.classList.toggle("active",i===step));
 
-async function loadUrbanThermData(){
-
-    try{
-
-        const response =
-            await fetch(
-                API_URL + "/api/grid"
-            );
-
-
-        if(!response.ok){
-
-            throw new Error(
-                "API request failed"
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        console.log(
-            "UrbanTherm Data:",
-            data
-        );
-
-
-        /* API STATUS */
-
-        document.getElementById(
-            "apiStatus"
-        ).innerHTML =
-            "● API Connected";
-
-
-        /* RISK COUNTS */
-
-        const high =
-            data.filter(
-                x =>
-                    x.heat_risk === "High"
-            ).length;
-
-
-        const medium =
-            data.filter(
-                x =>
-                    x.heat_risk === "Medium"
-            ).length;
-
-
-        const low =
-            data.filter(
-                x =>
-                    x.heat_risk === "Low"
-            ).length;
-
-
-        document.getElementById(
-            "totalCells"
-        ).textContent =
-            data.length;
-
-
-        document.getElementById(
-            "highRisk"
-        ).textContent =
-            high;
-
-
-        document.getElementById(
-            "mediumRisk"
-        ).textContent =
-            medium;
-
-
-        document.getElementById(
-            "lowRisk"
-        ).textContent =
-            low;
-
-
-        /* WEATHER */
-
-        if(data.length > 0){
-
-            const first =
-                data[0];
-
-
-            document.getElementById(
-                "avgTemperature"
-            ).textContent =
-                Number(
-                    first.avg_temperature
-                ).toFixed(1)
-                + " °C";
-
-
-            document.getElementById(
-                "maxTemperature"
-            ).textContent =
-                Number(
-                    first.max_temperature
-                ).toFixed(1)
-                + " °C";
-
-
-            document.getElementById(
-                "humidity"
-            ).textContent =
-                Number(
-                    first.avg_humidity
-                ).toFixed(1)
-                + " %";
-
-
-            document.getElementById(
-                "windSpeed"
-            ).textContent =
-                Number(
-                    first.avg_wind_speed
-                ).toFixed(1)
-                + " km/h";
-
-        }
-
-    }
-
-    catch(error){
-
-        console.error(
-            "UrbanTherm API Error:",
-            error
-        );
-
-
-        document.getElementById(
-            "apiStatus"
-        ).innerHTML =
-            "● API Offline";
-
-    }
-
+  heading.textContent=storyData[step][0];
+  text.textContent=storyData[step][1];
+  copy.classList.toggle("active",step>0);
 }
-
-
-/* =========================
-   GRID SEARCH + ML
-========================= */
-
-async function searchGrid(){
-
-    const input =
-        document.getElementById(
-            "gridInput"
-        )
-        .value
-        .trim()
-        .toUpperCase();
-
-
-    if(input === ""){
-
-        document.getElementById(
-            "gridMessage"
-        ).textContent =
-            "Please enter a Grid ID.";
-
-        return;
-
-    }
-
-
-    try{
-
-        const response =
-            await fetch(
-                API_URL +
-                "/api/predict-grid/" +
-                input
-            );
-
-
-        const grid =
-            await response.json();
-
-
-        if(!response.ok){
-
-            document.getElementById(
-                "gridInfo"
-            ).style.display =
-                "none";
-
-
-            document.getElementById(
-                "gridMessage"
-            ).textContent =
-                "Grid not found. Try a valid Grid ID such as G1086.";
-
-            return;
-
-        }
-
-
-        /* SHOW GRID */
-
-        document.getElementById(
-            "gridInfo"
-        ).style.display =
-            "grid";
-
-
-        document.getElementById(
-            "gridMessage"
-        ).textContent =
-            "Live satellite and ML intelligence for selected grid:";
-
-
-        /* GRID */
-
-        document.getElementById(
-            "gridId"
-        ).textContent =
-            grid.grid_id;
-
-
-        /* OBSERVED */
-
-        document.getElementById(
-            "gridRisk"
-        ).textContent =
-            grid.observed_risk;
-
-
-        /* ML */
-
-        document.getElementById(
-            "gridMLPrediction"
-        ).textContent =
-            grid.ml_prediction;
-
-
-        /* LST */
-
-        document.getElementById(
-            "gridLst"
-        ).textContent =
-            Number(
-                grid.lst_celsius
-            ).toFixed(2)
-            + " °C";
-
-
-        /* NDVI */
-
-        document.getElementById(
-            "gridNdvi"
-        ).textContent =
-            Number(
-                grid.ndvi
-            ).toFixed(3);
-
-
-        /* NDBI */
-
-        document.getElementById(
-            "gridNdbi"
-        ).textContent =
-            Number(
-                grid.ndbi
-            ).toFixed(3);
-
-
-        /* SCORE */
-
-        document.getElementById(
-            "gridScore"
-        ).textContent =
-            Number(
-                grid.heat_risk_score
-            ).toFixed(1);
-
-
-        /* TEMPERATURE */
-
-        document.getElementById(
-            "gridTemperature"
-        ).textContent =
-            Number(
-                grid.avg_temperature
-            ).toFixed(1)
-            + " °C";
-
-
-        /* HUMIDITY */
-
-        document.getElementById(
-            "gridHumidity"
-        ).textContent =
-            Number(
-                grid.avg_humidity
-            ).toFixed(1)
-            + " %";
-
-
-        /* OBSERVED RISK COLOR */
-
-        const riskElement =
-            document.getElementById(
-                "gridRisk"
-            );
-
-
-        if(
-            grid.observed_risk === "High"
-        ){
-
-            riskElement.style.color =
-                "#ef4444";
-
-        }
-
-        else if(
-            grid.observed_risk === "Medium"
-        ){
-
-            riskElement.style.color =
-                "#f59e0b";
-
-        }
-
-        else{
-
-            riskElement.style.color =
-                "#22c55e";
-
-        }
-
-
-        /* ML COLOR */
-
-        const mlElement =
-            document.getElementById(
-                "gridMLPrediction"
-            );
-
-
-        if(
-            grid.ml_prediction === "High"
-        ){
-
-            mlElement.style.color =
-                "#ef4444";
-
-        }
-
-        else if(
-            grid.ml_prediction === "Medium"
-        ){
-
-            mlElement.style.color =
-                "#f59e0b";
-
-        }
-
-        else{
-
-            mlElement.style.color =
-                "#22c55e";
-
-        }
-
-    }
-
-    catch(error){
-
-        console.error(
-            "ML prediction error:",
-            error
-        );
-
-
-        document.getElementById(
-            "gridInfo"
-        ).style.display =
-            "none";
-
-
-        document.getElementById(
-            "gridMessage"
-        ).textContent =
-            "Unable to connect to ML API.";
-
-    }
-
-}
-
-
-/* =========================
-   MAP FILTER
-========================= */
-
-function selectRisk(
-    risk,
-    button
-){
-
-    document
-        .querySelectorAll(
-            ".filter"
-        )
-        .forEach(
-            btn =>
-                btn.classList.remove(
-                    "active"
-                )
-        );
-
-
-    button.classList.add(
-        "active"
-    );
-
-
-    const map =
-        document.getElementById(
-            "heatMap"
-        );
-
-
-    if(
-        risk === "All"
-    ){
-
-        map.src =
-            "../docs/ghaziabad_heat_risk_map.html";
-
-    }
-
-    else if(
-        risk === "High"
-    ){
-
-        map.src =
-            "../docs/ghaziabad_high_risk_map.html";
-
-    }
-
-    else if(
-        risk === "Medium"
-    ){
-
-        map.src =
-            "../docs/ghaziabad_medium_risk_map.html";
-
-    }
-
-    else if(
-        risk === "Low"
-    ){
-
-        map.src =
-            "../docs/ghaziabad_low_risk_map.html";
-
-    }
-
-}
-
-
-/* =========================
-   ENTER KEY
-========================= */
-
-document
-    .getElementById(
-        "gridInput"
-    )
-    .addEventListener(
-        "keypress",
-        function(event){
-
-            if(
-                event.key === "Enter"
-            ){
-
-                searchGrid();
-
-            }
-
-        }
-    );
-
-
-/* =========================
-   START
-========================= */
-
-loadUrbanThermData();
-
-
+window.addEventListener("scroll",updateStory,{passive:true});
+updateStory();
+
+/* subtle hero parallax */
+const heat=document.querySelector(".heatfield");
+window.addEventListener("mousemove",e=>{
+  const x=(e.clientX/innerWidth-.5)*12;
+  const y=(e.clientY/innerHeight-.5)*8;
+  heat.style.transform=`translate(${x}px,${y}px)`;
+});
 </script>
 
-
 </body>
-
 </html>
