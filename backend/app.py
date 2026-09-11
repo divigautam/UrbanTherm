@@ -7,7 +7,10 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Project root
+# =========================
+# PROJECT PATHS
+# =========================
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
@@ -20,41 +23,16 @@ DATA_PATH = os.path.join(
     "ghaziabad_real_heat_risk.csv"
 )
 
-# Load model and data
+# =========================
+# LOAD MODEL + DATA
+# =========================
+
 model = joblib.load(MODEL_PATH)
 data = pd.read_csv(DATA_PATH)
 
 
 # =========================
-# FRONTEND ROUTES
-# =========================
-
-@app.route("/")
-def home():
-    return send_from_directory(FRONTEND_DIR, "index.html")
-
-
-@app.route("/<path:path>")
-def serve_frontend(path):
-    file_path = os.path.join(FRONTEND_DIR, path)
-
-    if os.path.isfile(file_path):
-        return send_from_directory(FRONTEND_DIR, path)
-
-    return send_from_directory(FRONTEND_DIR, "index.html")
-
-
-# =========================
-# MAP / DOCS FILES
-# =========================
-
-@app.route("/docs/<path:filename>")
-def serve_docs(filename):
-    return send_from_directory(DOCS_DIR, filename)
-
-
-# =========================
-# API
+# API ROUTES
 # =========================
 
 @app.route("/api/grid", methods=["GET"])
@@ -78,9 +56,7 @@ def get_grid():
         ]
     ]
 
-    return jsonify(
-        result.to_dict(orient="records")
-    )
+    return jsonify(result.to_dict(orient="records"))
 
 
 @app.route("/api/predict-grid/<grid_id>", methods=["GET"])
@@ -149,12 +125,75 @@ def predict():
 
 
 # =========================
-# RUN
+# HEALTH CHECK
+# =========================
+
+@app.route("/health")
+def health():
+
+    return jsonify({
+        "status": "healthy",
+        "service": "UrbanTherm API"
+    })
+
+
+# =========================
+# MAP / DOCS
+# =========================
+
+@app.route("/docs/<path:filename>")
+def serve_docs(filename):
+
+    return send_from_directory(
+        DOCS_DIR,
+        filename
+    )
+
+
+# =========================
+# FRONTEND
+# =========================
+
+@app.route("/")
+def home():
+
+    return send_from_directory(
+        FRONTEND_DIR,
+        "index.html"
+    )
+
+
+@app.route("/<path:path>")
+def serve_frontend(path):
+
+    file_path = os.path.join(
+        FRONTEND_DIR,
+        path
+    )
+
+    if os.path.isfile(file_path):
+
+        return send_from_directory(
+            FRONTEND_DIR,
+            path
+        )
+
+    return send_from_directory(
+        FRONTEND_DIR,
+        "index.html"
+    )
+
+
+# =========================
+# LOCAL RUN
 # =========================
 
 if __name__ == "__main__":
+
+    port = int(os.environ.get("PORT", 5000))
+
     app.run(
         host="0.0.0.0",
-        port=5000,
+        port=port,
         debug=True
     )
