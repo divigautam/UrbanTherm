@@ -542,7 +542,7 @@ footer{
     <h1>Predict Heat <span>Risk.</span></h1>
 
     <p class="subtitle">
-        Enter a Ghaziabad grid ID and let the UrbanTherm machine-learning
+        Enter a Ghaziabad area or address and let the UrbanTherm machine-learning
         engine analyze its environmental characteristics and return a
         heat-risk classification.
     </p>
@@ -557,12 +557,12 @@ footer{
             Query the trained Random Forest model.
         </p>
 
-        <label for="gridId">GRID ID</label>
+        <label for="gridId">AREA OR ADDRESS</label>
 
         <input
             id="gridId"
             type="text"
-            placeholder="e.g. G1086"
+            placeholder="e.g. a locality or landmark"
             autocomplete="off"
         >
 
@@ -571,7 +571,7 @@ footer{
         </button>
 
         <div class="example">
-            Try: G1086 · G2000 · G3000
+            Tip: a locality or landmark name works best. Grid IDs like G1086 also work.
         </div>
     </div>
 
@@ -580,7 +580,7 @@ footer{
 
         <div class="scan">
             <span id="statusDot" class="dot"></span>
-            <span id="scanText">AI engine ready · waiting for grid</span>
+            <span id="scanText">AI engine ready · waiting for location</span>
         </div>
 
         <div id="idle" class="idle">
@@ -589,7 +589,7 @@ footer{
             </div>
 
             <div>
-                Enter a grid ID to begin analysis
+                Enter an area or address to begin analysis
             </div>
         </div>
 
@@ -601,7 +601,7 @@ footer{
                 <div class="grid-name">
                     <span id="resultGrid">G1086</span>
 
-                    <small>
+                    <small id="resultSub">
                         Ghaziabad spatial intelligence
                     </small>
                 </div>
@@ -688,12 +688,12 @@ const API_BASE = "";
 async function predictGrid(){
 
     const input = document.getElementById("gridId");
-    const gridId = input.value.trim();
+    const query = input.value.trim();
 
-    if(!gridId){
+    if(!query){
         input.focus();
         document.getElementById("scanText").textContent =
-            "Enter a grid ID first";
+            "Enter an area or address first";
         return;
     }
 
@@ -714,7 +714,7 @@ async function predictGrid(){
     try{
 
         const response = await fetch(
-            `${API_BASE}/api/predict-grid/${encodeURIComponent(gridId)}`
+            `${API_BASE}/api/predict-address?q=${encodeURIComponent(query)}`
         );
 
         const data = await response.json();
@@ -730,6 +730,9 @@ async function predictGrid(){
 
         document.getElementById("resultGrid").textContent =
             data.grid_id;
+
+        document.getElementById("resultSub").textContent =
+            data.matched_address || "Ghaziabad spatial intelligence";
 
         document.getElementById("prediction").textContent =
             data.ml_prediction;
@@ -777,7 +780,10 @@ async function predictGrid(){
         }
 
         document.getElementById("explanation").textContent =
-            `Grid ${data.grid_id} returned an ML prediction of ${data.ml_prediction}. ` +
+            (data.matched_address
+                ? `${data.matched_address} falls in grid ${data.grid_id}. `
+                : `Grid ${data.grid_id}. `) +
+            `The ML prediction is ${data.ml_prediction}. ` +
             `The observed satellite LST is ${Number(data.lst_celsius).toFixed(2)} °C, ` +
             `with NDVI ${Number(data.ndvi).toFixed(3)} and NDBI ${Number(data.ndbi).toFixed(3)}.`;
 

@@ -916,7 +916,7 @@ footer{
             <input
                 type="text"
                 id="gridInput"
-                placeholder="Enter Grid ID e.g. G1086">
+                placeholder="Enter area or address (a Grid ID also works)">
 
 
             <button
@@ -931,7 +931,7 @@ footer{
 
         <div id="gridMessage">
 
-            Search a grid cell to view
+            Search an area or address to view
             satellite and ML intelligence.
 
         </div>
@@ -1355,8 +1355,9 @@ footer{
    API
 ========================= */
 
+// Same origin as the page (Flask serves the frontend), so it works locally and when deployed
 const API_URL =
-    "http://127.0.0.1:5000";
+    "";
 
 
 /* =========================
@@ -1523,8 +1524,7 @@ async function searchGrid(){
             "gridInput"
         )
         .value
-        .trim()
-        .toUpperCase();
+        .trim();
 
 
     if(input === ""){
@@ -1532,7 +1532,7 @@ async function searchGrid(){
         document.getElementById(
             "gridMessage"
         ).textContent =
-            "Please enter a Grid ID.";
+            "Please enter an area or address.";
 
         return;
 
@@ -1541,11 +1541,16 @@ async function searchGrid(){
 
     try{
 
+        document.getElementById(
+            "gridMessage"
+        ).textContent =
+            "Finding that location on the UrbanTherm grid...";
+
         const response =
             await fetch(
                 API_URL +
-                "/api/predict-grid/" +
-                input
+                "/api/predict-address?q=" +
+                encodeURIComponent(input)
             );
 
 
@@ -1564,7 +1569,8 @@ async function searchGrid(){
             document.getElementById(
                 "gridMessage"
             ).textContent =
-                "Grid not found. Try a valid Grid ID such as G1086.";
+                grid.error ||
+            "Could not find that place. Try a locality or landmark name.";
 
             return;
 
@@ -1582,7 +1588,9 @@ async function searchGrid(){
         document.getElementById(
             "gridMessage"
         ).textContent =
-            "Live satellite and ML intelligence for selected grid:";
+            grid.matched_address
+                ? "Matched \"" + grid.matched_address + "\" to grid " + grid.grid_id + ":"
+                : "Live satellite and ML intelligence for selected grid:";
 
 
         /* GRID */
@@ -1758,7 +1766,7 @@ async function searchGrid(){
         document.getElementById(
             "gridMessage"
         ).textContent =
-            "Unable to connect to ML API.";
+            "Unable to connect to the UrbanTherm API. Make sure the backend is running the latest app.py.";
 
     }
 
