@@ -137,20 +137,20 @@ footer{margin-top:70px;padding:28px;text-align:center;color:#657288;border-top:1
 
 <section class="search-panel">
     <h2 class="search-title">Grid Intelligence Search</h2>
-    <p class="search-sub">Enter a grid ID to retrieve its actual UrbanTherm data.</p>
+    <p class="search-sub">Type an area or address in Ghaziabad (a grid ID like G1086 also works).</p>
 
     <div class="search-row">
-        <input id="gridInput" type="text" placeholder="Enter Grid ID — e.g. G1086" autocomplete="off">
+        <input id="gridInput" type="text" placeholder="Enter area or address — e.g. a locality or landmark" autocomplete="off">
         <button id="searchBtn" onclick="searchGrid()">Search Grid →</button>
     </div>
 
-    <div id="message" class="message">Try G1086, G2000 or G3000.</div>
+    <div id="message" class="message">Try a locality or landmark name.</div>
 
     <div id="result" class="result">
         <div class="result-top">
             <div class="grid-id">
                 <span id="gridId">—</span>
-                <small>UrbanTherm grid intelligence</small>
+                <small id="gridSub">UrbanTherm grid intelligence</small>
             </div>
             <div id="badge" class="badge low">LOW</div>
         </div>
@@ -219,14 +219,14 @@ const API_BASE = "";
 
 async function searchGrid(){
     const input = document.getElementById("gridInput");
-    const gridId = input.value.trim();
+    const query = input.value.trim();
 
     const message = document.getElementById("message");
     const result = document.getElementById("result");
     const button = document.getElementById("searchBtn");
 
-    if(!gridId){
-        message.textContent = "Please enter a grid ID.";
+    if(!query){
+        message.textContent = "Please enter an area or address.";
         input.focus();
         return;
     }
@@ -234,11 +234,11 @@ async function searchGrid(){
     result.classList.remove("show");
     button.disabled = true;
     button.textContent = "Scanning...";
-    message.textContent = "Querying UrbanTherm grid API...";
+    message.textContent = "Finding that location on the UrbanTherm grid...";
 
     try{
         const response = await fetch(
-            `${API_BASE}/api/predict-grid/${encodeURIComponent(gridId)}`
+            `${API_BASE}/api/predict-address?q=${encodeURIComponent(query)}`
         );
 
         const data = await response.json();
@@ -250,6 +250,8 @@ async function searchGrid(){
         await new Promise(resolve => setTimeout(resolve, 500));
 
         document.getElementById("gridId").textContent = data.grid_id;
+        document.getElementById("gridSub").textContent =
+            data.matched_address || "UrbanTherm grid intelligence";
         document.getElementById("lst").textContent = `${Number(data.lst_celsius).toFixed(2)} °C`;
         document.getElementById("ndvi").textContent = Number(data.ndvi).toFixed(3);
         document.getElementById("ndbi").textContent = Number(data.ndbi).toFixed(3);
@@ -275,11 +277,13 @@ async function searchGrid(){
             `conic-gradient(var(--orange) ${score * 3.6}deg, rgba(255,255,255,.07) ${score * 3.6}deg)`;
 
         result.classList.add("show");
-        message.textContent = `Grid ${data.grid_id} loaded successfully from the UrbanTherm API.`;
+        message.textContent = data.matched_address
+            ? `Matched "${data.matched_address}" to grid ${data.grid_id}.`
+            : `Grid ${data.grid_id} loaded successfully from the UrbanTherm API.`;
 
     }catch(error){
         result.classList.remove("show");
-        message.textContent = `Unable to load grid: ${error.message}`;
+        message.textContent = `Unable to find heat data: ${error.message}`;
     }finally{
         button.disabled = false;
         button.textContent = "Search Grid →";

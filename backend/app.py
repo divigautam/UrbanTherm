@@ -3,6 +3,14 @@ from flask_cors import CORS
 import pandas as pd
 import joblib
 import os
+import re
+import json
+import math
+import urllib.parse
+import urllib.request
+from functools import lru_cache
+
+import numpy as np
 
 app = Flask(__name__)
 CORS(app)
@@ -29,6 +37,77 @@ DATA_PATH = os.path.join(
 
 model = joblib.load(MODEL_PATH)
 data = pd.read_csv(DATA_PATH)
+
+# =========================
+# ADDRESS SEARCH SETUP
+# (typed area/address -> coordinates -> nearest grid cell)
+# =========================
+
+GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
+GEOCODE_USER_AGENT = "UrbanTherm/1.0 (academic project)"
+
+# Cells are 500 m x 500 m, so a point inside a cell is at most ~354 m
+# from that cell's centre. Anything further is outside the grid.
+MAX_MATCH_DISTANCE_M = 400
+BBOX_PAD_DEG = 0.02
+
+_grid_lat = np.radians(data["centroid_lat"].to_numpy(dtype=float))
+_grid_lon = np.radians(data["centroid_lon"].to_numpy(dtype=float))
+
+# Limit geocoding to the area your grid covers (taken from the data itself)
+# Nominatim viewbox order: left(lon), top(lat), right(lon), bottom(lat)
+_VIEWBOX = "{},{},{},{}".format(
+    data["centroid_lon"].min() - BBOX_PAD_DEG,
+    data["centroid_lat"].max() + BBOX_PAD_DEG,
+    data["centroid_lon"].max() + BBOX_PAD_DEG,
+    data["centroid_lat"].min() - BBOX_PAD_DEG,
+)
+
+
+@lru_cache(maxsize=256)
+def geocode(query):
+    """Return (lat, lon, display_name) for a typed place, or None."""
+
+    params = urllib.parse.urlencode({
+        "q": query,
+        "format": "jsonv2",
+        "limit": 1,
+        "bounded": 1,
+        "viewbox": _VIEWBOX,
+        "countrycodes": "in"
+    })
+
+    request_obj = urllib.request.Request(
+        f"{GEOCODE_URL}?{params}",
+        headers={"User-Agent": GEOCODE_USER_AGENT}
+    )
+
+    with urllib.request.urlopen(request_obj, timeout=8) as response:
+        results = json.loads(response.read().decode("utf-8"))
+
+    if not results:
+        return None
+
+    best = results[0]
+
+    return float(best["lat"]), float(best["lon"]), best.get("display_name", query)
+
+
+def nearest_grid_index(lat, lon):
+    """Index of the closest grid centroid and its distance in metres."""
+
+    lat_r = math.radians(lat)
+    lon_r = math.radians(lon)
+
+    a = (
+        np.sin((_grid_lat - lat_r) / 2) ** 2
+        + np.cos(lat_r) * np.cos(_grid_lat) * np.sin((_grid_lon - lon_r) / 2) ** 2
+    )
+
+    distances = 2 * 6371000 * np.arcsin(np.sqrt(a))
+    idx = int(distances.argmin())
+
+    return idx, float(distances[idx])
 
 
 # =========================
@@ -100,6 +179,59 @@ def predict_grid(grid_id):
         "avg_wind_speed": row["avg_wind_speed"],
         "avg_heat_index": row["avg_heat_index"]
     })
+
+
+@app.route("/api/predict-address", methods=["GET"])
+def predict_address():
+
+    query = request.args.get("q", "").strip()
+
+    if not query:
+        return jsonify({
+            "error": "Please enter an area or address"
+        }), 400
+
+    # A grid ID such as G1086 still works exactly as before
+    if re.fullmatch(r"G\d{1,5}", query, re.IGNORECASE):
+        return predict_grid(query)
+
+    try:
+        place = geocode(query.lower())
+    except Exception:
+        return jsonify({
+            "error": "Address lookup service is unavailable, please try again"
+        }), 502
+
+    if place is None:
+        return jsonify({
+            "error": "Could not find that place inside the covered area. "
+                     "Try a locality or landmark name."
+        }), 404
+
+    lat, lon, display_name = place
+
+    idx, distance_m = nearest_grid_index(lat, lon)
+
+    if distance_m > MAX_MATCH_DISTANCE_M:
+        return jsonify({
+            "error": "That place is outside the UrbanTherm grid coverage"
+        }), 404
+
+    grid_id = str(data.iloc[idx]["grid_id"])
+
+    # Reuse the existing route so the response stays identical
+    payload = predict_grid(grid_id).get_json()
+
+    payload.update({
+        "query": query,
+        "matched_address": display_name,
+        "searched_lat": lat,
+        "searched_lon": lon,
+        "distance_to_cell_centre_m": round(distance_m, 1)
+    })
+
+    return jsonify(payload)
+
 
 
 @app.route("/api/predict", methods=["POST"])
