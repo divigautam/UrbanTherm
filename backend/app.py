@@ -12,6 +12,11 @@ from functools import lru_cache
 
 import numpy as np
 
+try:
+    import insights
+except ImportError:  # started as a package, e.g. gunicorn backend.app:app
+    from backend import insights
+
 app = Flask(__name__)
 CORS(app)
 
@@ -38,6 +43,7 @@ DATA_PATH = os.path.join(
 model = joblib.load(MODEL_PATH)
 data = pd.read_csv(DATA_PATH)
 
+
 # =========================
 # ADDRESS SEARCH SETUP
 # (typed area/address -> coordinates -> nearest grid cell)
@@ -46,15 +52,15 @@ data = pd.read_csv(DATA_PATH)
 GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
 GEOCODE_USER_AGENT = "UrbanTherm/1.0 (academic project)"
 
-# Cells are 500 m x 500 m, so a point inside a cell is at most ~354 m
-# from that cell's centre. Anything further is outside the grid.
+# Grid cells are 500 m x 500 m, so the centre of the cell containing a point
+# is at most ~354 m away. Anything further than this is outside the grid.
 MAX_MATCH_DISTANCE_M = 400
 BBOX_PAD_DEG = 0.02
 
 _grid_lat = np.radians(data["centroid_lat"].to_numpy(dtype=float))
 _grid_lon = np.radians(data["centroid_lon"].to_numpy(dtype=float))
 
-# Limit geocoding to the area your grid covers (taken from the data itself)
+# Restrict geocoding to the area the grid covers (taken from the data itself)
 # Nominatim viewbox order: left(lon), top(lat), right(lon), bottom(lat)
 _VIEWBOX = "{},{},{},{}".format(
     data["centroid_lon"].min() - BBOX_PAD_DEG,
@@ -66,7 +72,7 @@ _VIEWBOX = "{},{},{},{}".format(
 
 @lru_cache(maxsize=256)
 def geocode(query):
-    """Return (lat, lon, display_name) for a typed place, or None."""
+    """Return (lat, lon, display_name) for a typed place, or None if not found."""
 
     params = urllib.parse.urlencode({
         "q": query,
@@ -94,7 +100,7 @@ def geocode(query):
 
 
 def nearest_grid_index(lat, lon):
-    """Index of the closest grid centroid and its distance in metres."""
+    """Index of the grid centroid closest to (lat, lon) and its distance in metres."""
 
     lat_r = math.radians(lat)
     lon_r = math.radians(lon)
@@ -232,6 +238,66 @@ def predict_address():
 
     return jsonify(payload)
 
+
+# =========================
+# HEAT INSIGHTS (explanation)
+# =========================
+
+def _unpack(result):
+    """A Flask view may return a Response or a (Response, status) tuple."""
+    if isinstance(result, tuple):
+        return result[0], result[1]
+    return result, result.status_code
+
+
+def _insights_response(payload):
+    grid_id = str(payload["grid_id"]).upper()
+
+    row = data[
+        data["grid_id"].astype(str).str.upper() == grid_id
+    ].iloc[0]
+
+    result = insights.explain_grid(
+        row,
+        data,
+        payload.get("ml_prediction")
+    )
+
+    # keep the address-search details when the search came from an address
+    for key in (
+        "query",
+        "matched_address",
+        "searched_lat",
+        "searched_lon",
+        "distance_to_cell_centre_m"
+    ):
+        if key in payload:
+            result[key] = payload[key]
+
+    return jsonify(result)
+
+
+@app.route("/api/insights", methods=["GET"])
+def insights_by_query():
+
+    # accepts ?q=<area or address or grid ID>, same as /api/predict-address
+    response, status = _unpack(predict_address())
+
+    if status != 200:
+        return response, status
+
+    return _insights_response(response.get_json())
+
+
+@app.route("/api/insights/<grid_id>", methods=["GET"])
+def insights_by_grid(grid_id):
+
+    response, status = _unpack(predict_grid(grid_id))
+
+    if status != 200:
+        return response, status
+
+    return _insights_response(response.get_json())
 
 
 @app.route("/api/predict", methods=["POST"])
