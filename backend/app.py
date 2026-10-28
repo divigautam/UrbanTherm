@@ -6,6 +6,8 @@ import os
 import re
 import json
 import math
+import ssl
+import logging
 import urllib.parse
 import urllib.request
 from functools import lru_cache
@@ -49,18 +51,20 @@ data = pd.read_csv(DATA_PATH)
 # (typed area/address -> coordinates -> nearest grid cell)
 # =========================
 
-GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
-# Nominatim asks apps to identify themselves. You can set GEOCODE_USER_AGENT on the host,
-# for example "UrbanTherm/1.0 (your-email@example.com)".
-GEOCODE_USER_AGENT = os.environ.get(
-    "GEOCODE_USER_AGENT",
-    "UrbanTherm/1.0 (academic project)"
-)
+# Use certifi's CA bundle if available (avoids SSL errors on some Windows/Mac setups)
+try:
+    import certifi
+    _SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    _SSL_CTX = None
 
-# Second free geocoder (OpenStreetMap data), used if Nominatim fails or finds nothing.
-# Shared cloud hosts such as Render are often blocked by Nominatim.
+GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
 PHOTON_URL = "https://photon.komoot.io/api/"
-GEOCODE_TIMEOUT_S = 6
+
+# Nominatim blocks generic user agents. Put your real email here.
+GEOCODE_USER_AGENT = (
+    "UrbanTherm/1.0 (https://github.com/divigautam/UrbanTherm; ytworks2130@gmail.com)"
+)
 
 # Grid cells are 500 m x 500 m, so the centre of the cell containing a point
 # is at most ~354 m away. Anything further than this is outside the grid.
@@ -71,17 +75,29 @@ _grid_lat = np.radians(data["centroid_lat"].to_numpy(dtype=float))
 _grid_lon = np.radians(data["centroid_lon"].to_numpy(dtype=float))
 
 # Restrict geocoding to the area the grid covers (taken from the data itself)
+_MIN_LON = float(data["centroid_lon"].min() - BBOX_PAD_DEG)
+_MAX_LON = float(data["centroid_lon"].max() + BBOX_PAD_DEG)
+_MIN_LAT = float(data["centroid_lat"].min() - BBOX_PAD_DEG)
+_MAX_LAT = float(data["centroid_lat"].max() + BBOX_PAD_DEG)
+
 # Nominatim viewbox order: left(lon), top(lat), right(lon), bottom(lat)
-_VIEWBOX = "{},{},{},{}".format(
-    data["centroid_lon"].min() - BBOX_PAD_DEG,
-    data["centroid_lat"].max() + BBOX_PAD_DEG,
-    data["centroid_lon"].max() + BBOX_PAD_DEG,
-    data["centroid_lat"].min() - BBOX_PAD_DEG,
-)
+_VIEWBOX = f"{_MIN_LON},{_MAX_LAT},{_MAX_LON},{_MIN_LAT}"
+
+
+def _get_json(url):
+    """GET a URL and parse the JSON response."""
+
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": GEOCODE_USER_AGENT}
+    )
+
+    with urllib.request.urlopen(req, timeout=10, context=_SSL_CTX) as resp:
+        return json.loads(resp.read().decode("utf-8"))
 
 
 def _geocode_nominatim(query):
-    """Return (lat, lon, display_name) from Nominatim, or None if nothing found."""
+    """Primary geocoder: OpenStreetMap Nominatim."""
 
     params = urllib.parse.urlencode({
         "q": query,
@@ -92,13 +108,7 @@ def _geocode_nominatim(query):
         "countrycodes": "in"
     })
 
-    request_obj = urllib.request.Request(
-        f"{GEOCODE_URL}?{params}",
-        headers={"User-Agent": GEOCODE_USER_AGENT}
-    )
-
-    with urllib.request.urlopen(request_obj, timeout=GEOCODE_TIMEOUT_S) as response:
-        results = json.loads(response.read().decode("utf-8"))
+    results = _get_json(f"{GEOCODE_URL}?{params}")
 
     if not results:
         return None
@@ -109,70 +119,52 @@ def _geocode_nominatim(query):
 
 
 def _geocode_photon(query):
-    """Return (lat, lon, display_name) from Photon, or None if nothing found."""
-
-    min_lon, max_lat, max_lon, min_lat = _VIEWBOX.split(",")
+    """Fallback geocoder: Photon (komoot), also OpenStreetMap based."""
 
     params = urllib.parse.urlencode({
         "q": query,
         "limit": 1,
-        # Photon bbox order: minLon,minLat,maxLon,maxLat
-        "bbox": f"{min_lon},{min_lat},{max_lon},{max_lat}",
-        # bias results toward the middle of the grid
-        "lat": (float(min_lat) + float(max_lat)) / 2,
-        "lon": (float(min_lon) + float(max_lon)) / 2
+        "bbox": f"{_MIN_LON},{_MIN_LAT},{_MAX_LON},{_MAX_LAT}"
     })
 
-    request_obj = urllib.request.Request(
-        f"{PHOTON_URL}?{params}",
-        headers={"User-Agent": GEOCODE_USER_AGENT}
-    )
+    results = _get_json(f"{PHOTON_URL}?{params}")
 
-    with urllib.request.urlopen(request_obj, timeout=GEOCODE_TIMEOUT_S) as response:
-        results = json.loads(response.read().decode("utf-8"))
-
-    features = results.get("features") or []
+    features = results.get("features", [])
 
     if not features:
         return None
 
-    feature = features[0]
-    lon, lat = feature["geometry"]["coordinates"][:2]
-    props = feature.get("properties", {})
+    lon, lat = features[0]["geometry"]["coordinates"]
+    props = features[0].get("properties", {})
 
-    parts = []
-    for key in ("name", "street", "district", "city", "state", "postcode", "country"):
-        value = props.get(key)
-        if value and str(value) not in parts:
-            parts.append(str(value))
+    name = ", ".join(
+        str(props[key])
+        for key in ("name", "district", "city", "state")
+        if props.get(key)
+    )
 
-    return float(lat), float(lon), ", ".join(parts) or query
+    return float(lat), float(lon), name or query
 
 
 @lru_cache(maxsize=256)
 def geocode(query):
-    """Return (lat, lon, display_name) for a typed place, or None if not found.
-
-    Tries Nominatim first, then Photon. If nothing was found and a service failed,
-    the error is raised (so a temporary outage is not remembered as "not found").
-    Failures are printed so they show up in the host's logs.
+    """
+    Return (lat, lon, display_name) for a typed place, or None if not found.
+    Tries Nominatim first, then Photon. Raises only if every provider errored.
     """
 
     last_error = None
 
-    for name, lookup in (
-        ("Nominatim", _geocode_nominatim),
-        ("Photon", _geocode_photon)
-    ):
+    for provider in (_geocode_nominatim, _geocode_photon):
         try:
-            place = lookup(query)
-        except Exception as exc:
-            print(f"[geocode] {name} failed for {query!r}: {exc!r}", flush=True)
-            last_error = exc
-            continue
+            result = provider(query)
 
-        if place is not None:
-            return place
+            if result is not None:
+                return result
+
+        except Exception as e:
+            last_error = e
+            logging.exception("Geocoder %s failed", provider.__name__)
 
     if last_error is not None:
         raise last_error
@@ -284,9 +276,10 @@ def predict_address():
 
     try:
         place = geocode(query.lower())
-    except Exception:
+    except Exception as e:
+        app.logger.exception("Geocoding failed for %r", query)
         return jsonify({
-            "error": "Address lookup service is unavailable, please try again"
+            "error": f"Address lookup service is unavailable ({type(e).__name__}), please try again"
         }), 502
 
     if place is None:
