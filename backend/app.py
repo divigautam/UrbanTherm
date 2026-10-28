@@ -50,7 +50,17 @@ data = pd.read_csv(DATA_PATH)
 # =========================
 
 GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
-GEOCODE_USER_AGENT = "UrbanTherm/1.0 (academic project)"
+# Nominatim asks apps to identify themselves. You can set GEOCODE_USER_AGENT on the host,
+# for example "UrbanTherm/1.0 (your-email@example.com)".
+GEOCODE_USER_AGENT = os.environ.get(
+    "GEOCODE_USER_AGENT",
+    "UrbanTherm/1.0 (academic project)"
+)
+
+# Second free geocoder (OpenStreetMap data), used if Nominatim fails or finds nothing.
+# Shared cloud hosts such as Render are often blocked by Nominatim.
+PHOTON_URL = "https://photon.komoot.io/api/"
+GEOCODE_TIMEOUT_S = 6
 
 # Grid cells are 500 m x 500 m, so the centre of the cell containing a point
 # is at most ~354 m away. Anything further than this is outside the grid.
@@ -70,9 +80,8 @@ _VIEWBOX = "{},{},{},{}".format(
 )
 
 
-@lru_cache(maxsize=256)
-def geocode(query):
-    """Return (lat, lon, display_name) for a typed place, or None if not found."""
+def _geocode_nominatim(query):
+    """Return (lat, lon, display_name) from Nominatim, or None if nothing found."""
 
     params = urllib.parse.urlencode({
         "q": query,
@@ -88,7 +97,7 @@ def geocode(query):
         headers={"User-Agent": GEOCODE_USER_AGENT}
     )
 
-    with urllib.request.urlopen(request_obj, timeout=8) as response:
+    with urllib.request.urlopen(request_obj, timeout=GEOCODE_TIMEOUT_S) as response:
         results = json.loads(response.read().decode("utf-8"))
 
     if not results:
@@ -97,6 +106,78 @@ def geocode(query):
     best = results[0]
 
     return float(best["lat"]), float(best["lon"]), best.get("display_name", query)
+
+
+def _geocode_photon(query):
+    """Return (lat, lon, display_name) from Photon, or None if nothing found."""
+
+    min_lon, max_lat, max_lon, min_lat = _VIEWBOX.split(",")
+
+    params = urllib.parse.urlencode({
+        "q": query,
+        "limit": 1,
+        # Photon bbox order: minLon,minLat,maxLon,maxLat
+        "bbox": f"{min_lon},{min_lat},{max_lon},{max_lat}",
+        # bias results toward the middle of the grid
+        "lat": (float(min_lat) + float(max_lat)) / 2,
+        "lon": (float(min_lon) + float(max_lon)) / 2
+    })
+
+    request_obj = urllib.request.Request(
+        f"{PHOTON_URL}?{params}",
+        headers={"User-Agent": GEOCODE_USER_AGENT}
+    )
+
+    with urllib.request.urlopen(request_obj, timeout=GEOCODE_TIMEOUT_S) as response:
+        results = json.loads(response.read().decode("utf-8"))
+
+    features = results.get("features") or []
+
+    if not features:
+        return None
+
+    feature = features[0]
+    lon, lat = feature["geometry"]["coordinates"][:2]
+    props = feature.get("properties", {})
+
+    parts = []
+    for key in ("name", "street", "district", "city", "state", "postcode", "country"):
+        value = props.get(key)
+        if value and str(value) not in parts:
+            parts.append(str(value))
+
+    return float(lat), float(lon), ", ".join(parts) or query
+
+
+@lru_cache(maxsize=256)
+def geocode(query):
+    """Return (lat, lon, display_name) for a typed place, or None if not found.
+
+    Tries Nominatim first, then Photon. If nothing was found and a service failed,
+    the error is raised (so a temporary outage is not remembered as "not found").
+    Failures are printed so they show up in the host's logs.
+    """
+
+    last_error = None
+
+    for name, lookup in (
+        ("Nominatim", _geocode_nominatim),
+        ("Photon", _geocode_photon)
+    ):
+        try:
+            place = lookup(query)
+        except Exception as exc:
+            print(f"[geocode] {name} failed for {query!r}: {exc!r}", flush=True)
+            last_error = exc
+            continue
+
+        if place is not None:
+            return place
+
+    if last_error is not None:
+        raise last_error
+
+    return None
 
 
 def nearest_grid_index(lat, lon):
